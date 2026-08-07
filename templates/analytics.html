@@ -1,0 +1,582 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - OCR System{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="analytics-header mb-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+
+        <div>
+            <h1 class="page-title mb-1">
+                <i class="bi bi-bar-chart-line me-2" style="color:#6366f1;"></i>Analytics Overview
+            </h1>
+            <p class="page-subtitle mb-0">
+                Operational insights, OCR performance trends, and storage utilization.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+
+            <form method="GET" action="{{ url_for('dashboard.analytics') }}" id="analyticsFilterForm" class="d-flex gap-2 flex-wrap align-items-center mb-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="period" id="analyticsPeriodInput" value="{{ current_period }}">
+
+                <!-- Time Period Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle analytics-period-btn" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" id="periodDropdownBtn">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span id="periodLabel">{{ current_period_label if current_period_label else 'All Time' }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end analytics-dropdown">
+                        <li><a class="dropdown-item{% if not current_period %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='') }}">
+                            <i class="bi bi-clock-history me-2"></i>All Time
+                        </a></li>
+                        <li><a class="dropdown-item{% if current_period == 'today' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='today') }}">
+                            <i class="bi bi-calendar-day me-2"></i>Today
+                        </a></li>
+                        <li><a class="dropdown-item{% if current_period == '7d' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='7d') }}">
+                            <i class="bi bi-calendar-week me-2"></i>Last 7 Days
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item{% if current_period == 'month' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='month') }}">
+                            <i class="bi bi-calendar-month me-2"></i>Select Month
+                        </a></li>
+                        <li><a class="dropdown-item{% if current_period == 'year' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='year') }}">
+                            <i class="bi bi-calendar-range me-2"></i>Select Year
+                        </a></li>
+                    </ul>
+                </div>
+
+                <!-- Dynamic Month Selector -->
+                {% if current_period == 'month' %}
+                <select name="month" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                    {% set months = [
+                        ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
+                        ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
+                        ('9', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
+                    ] %}
+                    {% for m_val, m_name in months %}
+                    <option value="{{ m_val }}" {% if current_month|string == m_val|string %}selected{% endif %}>{{ m_name }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+                <!-- Dynamic Year Selector -->
+                {% if current_period == 'month' or current_period == 'year' %}
+                <select name="year" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                    {% for y in available_years %}
+                    <option value="{{ y }}" {% if current_year|string == y|string %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+
+            </form>
+
+            <a href="/export_excel?period={{ current_period }}&month={{ current_month }}&year={{ current_year }}" class="btn btn-primary btn-sm analytics-export-btn d-flex align-items-center gap-1">
+                <i class="bi bi-file-earmark-excel me-1"></i>
+                Export Excel
+            </a>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- KPI CARDS -->
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-md-4">
+        <div class="analytics-card h-100 analytics-card-hover">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="analytics-card-label">Total Files</div>
+                    <div class="analytics-card-value">{{ analytics.total_files }}</div>
+                </div>
+                <div class="analytics-card-icon analytics-icon-indigo">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+            </div>
+            <div class="analytics-card-footer">
+                <i class="bi bi-check-circle-fill me-1 text-success"></i>
+                <span class="text-muted">{{ analytics.success_files }} successful</span>
+                <span class="analytics-card-divider">·</span>
+                <span class="text-muted">{{ analytics.skipped_files }} skipped</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="analytics-card h-100 analytics-card-hover">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="analytics-card-label">Success Rate</div>
+                    <div class="analytics-card-value analytics-value-success">{{ analytics.success_rate }}%</div>
+                </div>
+                <div class="analytics-card-icon analytics-icon-green">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+            </div>
+            <div class="analytics-card-footer">
+                <i class="bi bi-x-circle-fill me-1 text-danger"></i>
+                <span class="text-muted">{{ analytics.failed_files }} failed</span>
+            </div>
+            <!-- Mini sparkline bar -->
+            <div class="analytics-sparkline mt-2">
+                <div class="analytics-sparkline-fill analytics-sparkline-success" style="width:{{ analytics.success_rate }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="analytics-card h-100 analytics-card-hover">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="analytics-card-label">Avg Processing Time</div>
+                    <div class="analytics-card-value analytics-value-sky">{{ analytics.avg_processing_time }}s</div>
+                </div>
+                <div class="analytics-card-icon analytics-icon-sky">
+                    <i class="bi bi-stopwatch"></i>
+                </div>
+            </div>
+            <div class="analytics-card-footer">
+                <i class="bi bi-clock-history me-1" style="color:#64748b;"></i>
+                <span class="text-muted">Per document average</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- CHARTS ROW -->
+<div class="row g-4 mb-4">
+
+    <!-- DAILY PROCESSING PERFORMANCE -->
+    <div class="col-lg-8">
+        <div class="analytics-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="analytics-section-title mb-1">
+                        <i class="bi bi-activity me-2" style="color:#15803d;"></i>Daily Processing Performance
+                    </h5>
+                    <small class="text-muted">Daily breakdown of successful and failed OCR documents</small>
+                </div>
+                {% if analytics.daily_trend %}
+                    {% set total_succ = analytics.daily_trend|map(attribute='success')|sum %}
+                    {% set total_fail = analytics.daily_trend|map(attribute='failed')|sum %}
+                    <div class="d-flex gap-2">
+                        <span class="analytics-badge analytics-badge-success">
+                            <i class="bi bi-check-circle me-1"></i>{{ total_succ }} Success
+                        </span>
+                        <span class="analytics-badge analytics-badge-danger">
+                            <i class="bi bi-x-circle me-1"></i>{{ total_fail }} Failed
+                        </span>
+                    </div>
+                {% endif %}
+            </div>
+            <div style="position:relative; height:280px;">
+                <canvas id="dailyPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- VOLUME PER DAY -->
+    <div class="col-lg-4">
+        <div class="analytics-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="analytics-section-title mb-1">
+                        <i class="bi bi-bar-chart me-2" style="color:#2563eb;"></i>Volume per Day
+                    </h5>
+                    <small class="text-muted">Documents processed daily</small>
+                </div>
+                {% if analytics.daily_volume %}
+                    {% set total_vol = analytics.daily_volume|map(attribute='jumlah')|sum %}
+                    <span class="analytics-badge analytics-badge-primary">
+                        {{ total_vol }} total
+                    </span>
+                {% endif %}
+            </div>
+            <div style="position:relative; height:280px;">
+                <canvas id="volumeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- STORAGE + USERS ROW -->
+<div class="row g-4 mb-4">
+
+    <!-- STORAGE USAGE -->
+    <div class="col-lg-4">
+        <div class="analytics-card h-100">
+            <h5 class="analytics-section-title mb-4">
+                <i class="bi bi-hdd-stack me-2 text-primary"></i>
+                Storage Usage
+            </h5>
+
+            <!-- Donut visualization -->
+            <div class="analytics-storage-donut-wrapper mb-3">
+                <div class="analytics-storage-donut">
+                    <svg viewBox="0 0 120 120" class="analytics-donut-svg">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="12"/>
+                        <circle cx="60" cy="60" r="50" fill="none"
+                                stroke="{% if analytics.storage_used_percent > 80 %}#dc2626{% elif analytics.storage_used_percent > 50 %}#f59e0b{% else %}#6366f1{% endif %}"
+                                stroke-width="12"
+                                stroke-dasharray="{{ (analytics.storage_used_percent / 100) * 314.16 }} {{ 314.16 - (analytics.storage_used_percent / 100) * 314.16 }}"
+                                stroke-dashoffset="78.54"
+                                stroke-linecap="round"
+                                class="analytics-donut-progress"/>
+                    </svg>
+                    <div class="analytics-donut-center">
+                        <div class="analytics-donut-value">{{ analytics.storage_used_percent }}%</div>
+                        <div class="analytics-donut-label">Used</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-3">
+                <div class="analytics-metric">{{ analytics.storage_used_gb }} GB</div>
+                <div class="text-muted small">of {{ analytics.storage_total_gb }} GB total disk capacity</div>
+            </div>
+
+            <div class="progress analytics-progress mb-2">
+                <div class="progress-bar {% if analytics.storage_used_percent > 80 %}bg-danger{% elif analytics.storage_used_percent > 50 %}bg-warning{% else %}analytics-progress-bar-gradient{% endif %}"
+                     style="width: {{ analytics.storage_used_percent }}%"></div>
+            </div>
+
+            <div class="d-flex justify-content-between small text-muted mb-3">
+                <span><i class="bi bi-circle-fill me-1" style="font-size:6px;color:#6366f1;vertical-align:middle;"></i>{{ analytics.storage_used_percent }}% Used</span>
+                <span>{{ analytics.storage_free_formatted }} Free</span>
+            </div>
+
+            <hr class="analytics-divider">
+
+            <div class="small fw-semibold text-muted mb-3 text-uppercase" style="letter-spacing:.06em;font-size:.72rem;">
+                Storage Breakdown
+            </div>
+
+            <div class="analytics-storage-item mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="analytics-storage-dot" style="background:#6366f1;"></span>
+                    <span class="small">PDF Output Folder</span>
+                </div>
+                <span class="small fw-semibold">{{ analytics.output_size_formatted }}</span>
+            </div>
+            <div class="analytics-storage-item mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="analytics-storage-dot" style="background:#0ea5e9;"></span>
+                    <span class="small">System Logs</span>
+                </div>
+                <span class="small fw-semibold">{{ analytics.log_size_formatted }}</span>
+            </div>
+            <div class="analytics-storage-item">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="analytics-storage-dot" style="background:#10b981;"></span>
+                    <span class="small">Free Drive Space</span>
+                </div>
+                <span class="small fw-semibold">{{ analytics.storage_free_formatted }}</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MOST ACTIVE USERS -->
+    <div class="col-lg-8">
+        <div class="analytics-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="analytics-section-title mb-1">
+                        <i class="bi bi-people-fill me-2" style="color:#6366f1;"></i>Most Active Users
+                    </h5>
+                    <small class="text-muted">Top contributors by documents processed</small>
+                </div>
+                <span class="analytics-badge analytics-badge-neutral">
+                    <i class="bi bi-trophy me-1"></i>Top {{ analytics.most_active_users|length }}
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless mb-0 align-middle analytics-users-table">
+                    <thead>
+                        <tr>
+                            <th class="analytics-th" style="width:5%;">#</th>
+                            <th class="analytics-th">User</th>
+                            <th class="analytics-th text-end">Docs Processed</th>
+                            <th class="analytics-th text-end" style="width:30%;">Share</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in analytics.most_active_users %}
+                        <tr class="analytics-user-row">
+                            <td>
+                                <span class="analytics-rank-badge {% if loop.index == 1 %}analytics-rank-gold{% elif loop.index == 2 %}analytics-rank-silver{% elif loop.index == 3 %}analytics-rank-bronze{% endif %}">
+                                    {{ loop.index }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="analytics-avatar analytics-avatar-{{ loop.index0 % 5 }}">
+                                        {{ user.author[0]|upper }}{{ user.author.split(' ')[-1][0]|upper if ' ' in user.author else '' }}
+                                    </div>
+                                    <div>
+                                        <span class="fw-semibold">{{ user.author }}</span>
+                                        {% if loop.index == 1 %}
+                                            <i class="bi bi-patch-check-fill ms-1" style="color:#f59e0b;font-size:.8rem;"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold" style="font-size:1.05rem;">{{ user.docs }}</span>
+                                <span class="text-muted small ms-1">docs</span>
+                            </td>
+                            <td class="text-end">
+                                {% set share = ((user.docs / analytics.total_files) * 100)|round(1) if analytics.total_files > 0 else 0 %}
+                                <div class="d-flex align-items-center gap-2 justify-content-end">
+                                    <div class="progress analytics-progress flex-grow-1" style="max-width:120px;">
+                                        <div class="progress-bar analytics-progress-bar-gradient" style="width:{{ share }}%"></div>
+                                    </div>
+                                    <span class="small fw-semibold" style="min-width:42px;color:#6366f1;">{{ share }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if not analytics.most_active_users %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
+                                <div class="fw-semibold mb-1">No user data available</div>
+                                <small>User activity will appear here after OCR processing.</small>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+
+/* ===== Period Filter (UI only, placeholder) ===== */
+function setPeriod(val, label) {
+    document.getElementById('periodLabel').textContent = label;
+    document.querySelectorAll('.analytics-dropdown .dropdown-item').forEach(el => el.classList.remove('active'));
+    event.target.closest('.dropdown-item').classList.add('active');
+}
+
+/* ===== Chart Colors ===== */
+const COLORS = {
+    success: '#15803d',
+    successLight: 'rgba(21,128,61,0.08)',
+    successGradientStart: 'rgba(21,128,61,0.25)',
+    successGradientEnd: 'rgba(21,128,61,0.02)',
+    failed: '#dc2626',
+    primary: '#6366f1',
+    primaryLight: 'rgba(99,102,241,0.15)',
+    primaryGradientStart: 'rgba(99,102,241,0.35)',
+    primaryGradientEnd: 'rgba(99,102,241,0.05)',
+    neutral: '#64748b'
+};
+
+/* ===== Daily Processing Performance (Line Chart) ===== */
+const performanceCanvas = document.getElementById('dailyPerformanceChart') || document.getElementById('successRateChart');
+if (performanceCanvas) {
+    const perfCtx = performanceCanvas.getContext('2d');
+    const trendLabels  = {{ analytics.daily_trend | map(attribute='tanggal') | list | tojson }};
+    const successData  = {{ analytics.daily_trend | map(attribute='success') | list | tojson }};
+    const failedData   = {{ analytics.daily_trend | map(attribute='failed') | list | tojson }};
+
+    /* Gradients */
+    const succGradient = perfCtx.createLinearGradient(0, 0, 0, 300);
+    succGradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+    succGradient.addColorStop(1, 'rgba(16, 185, 129, 0.01)');
+
+    const failGradient = perfCtx.createLinearGradient(0, 0, 0, 300);
+    failGradient.addColorStop(0, 'rgba(239, 68, 68, 0.22)');
+    failGradient.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+
+    new Chart(performanceCanvas, {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'Success',
+                    data: successData,
+                    borderColor: '#10b981',
+                    backgroundColor: succGradient,
+                    tension: 0.35,
+                    fill: true,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#10b981',
+                    pointBorderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointHoverBorderWidth: 3,
+                    pointHoverBackgroundColor: '#ffffff'
+                },
+                {
+                    label: 'Failed',
+                    data: failedData,
+                    borderColor: '#ef4444',
+                    backgroundColor: failGradient,
+                    tension: 0.35,
+                    fill: true,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#ef4444',
+                    pointBorderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointHoverBorderWidth: 3,
+                    pointHoverBackgroundColor: '#ffffff'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        padding: 15,
+                        font: { size: 12, weight: '600' },
+                        color: '#64748b'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 14,
+                    cornerRadius: 12,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 13 },
+                    displayColors: true,
+                    callbacks: {
+                        title: ctx => `📅 ${ctx[0].label}`,
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} docs`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                        font: { size: 12, weight: '500' },
+                        color: '#94a3b8'
+                    },
+                    grid: { color: 'rgba(241,245,249,0.8)', drawBorder: false },
+                    border: { display: false }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 12, weight: '500' },
+                        color: '#94a3b8'
+                    },
+                    grid: { display: false },
+                    border: { display: false }
+                }
+            }
+        }
+    });
+}
+
+/* ===== Volume per Day (Bar Chart) ===== */
+const volumeCanvas = document.getElementById('volumeChart');
+if (volumeCanvas) {
+    const volCtx = volumeCanvas.getContext('2d');
+    const volLabels = {{ analytics.daily_volume | map(attribute='tanggal') | list | tojson }};
+    const volData   = {{ analytics.daily_volume | map(attribute='jumlah') | list | tojson }};
+
+    /* Gradient fill for bars */
+    const volGradient = volCtx.createLinearGradient(0, 0, 0, 300);
+    volGradient.addColorStop(0, COLORS.primaryGradientStart);
+    volGradient.addColorStop(1, COLORS.primaryGradientEnd);
+
+    new Chart(volumeCanvas, {
+        type: 'bar',
+        data: {
+            labels: volLabels,
+            datasets: [{
+                label: 'Documents',
+                data: volData,
+                backgroundColor: volGradient,
+                borderColor: COLORS.primary,
+                borderWidth: 1.5,
+                borderRadius: 10,
+                borderSkipped: false,
+                maxBarThickness: 36
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    padding: 14,
+                    cornerRadius: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: ctx => `📅 ${ctx[0].label}`,
+                        label: ctx => `${ctx.parsed.y} documents processed`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                        font: { size: 12, weight: '500' },
+                        color: '#94a3b8'
+                    },
+                    grid: { color: 'rgba(241,245,249,0.8)', drawBorder: false },
+                    border: { display: false }
+                },
+                x: {
+                    ticks: {
+                        font: { size: 11, weight: '500' },
+                        color: '#94a3b8',
+                        maxRotation: 45
+                    },
+                    grid: { display: false },
+                    border: { display: false }
+                }
+            }
+        }
+    });
+}
+
+</script>
+
+{% endblock %}
