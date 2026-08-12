@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Documents Management{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+    <div>
+        <h1 class="page-title mb-1">
+            <i class="bi bi-folder2-open me-2" style="color:#6366f1;"></i>Documents Management
+        </h1>
+        <p class="page-subtitle mb-0">
+            Search, filter, and manage processed OCR documents.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+
+        <form method="GET" action="{{ url_for('dashboard.documents') }}" id="filterForm" class="d-flex gap-2 flex-wrap align-items-center mb-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            {% if current_q %}
+            <input type="hidden" name="q" value="{{ current_q }}">
+            {% endif %}
+            <input type="hidden" name="status" id="statusInput" value="{{ current_status }}">
+            <input type="hidden" name="period" id="periodInput" value="{{ current_period }}">
+
+            <!-- Status Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel me-1"></i>Status: {{ current_status if current_status else 'All' }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% set status_opts = [
+                        {'label': 'All Status', 'value': ''},
+                        {'label': 'Success', 'value': 'SUKSES'},
+                        {'label': 'Failed', 'value': 'GAGAL'},
+                        {'label': 'Skipped', 'value': 'SKIP'}
+                    ] %}
+                    {% for opt in status_opts %}
+                    <li>
+                        <a class="dropdown-item{% if current_status == opt.value %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=opt.value, period=current_period, month=current_month, year=current_year) }}">
+                            {{ opt.label }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Time Range Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-calendar3 me-1"></i>{{ current_period_label if current_period_label else 'All Time' }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item{% if not current_period %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='') }}">
+                            <i class="bi bi-clock-history me-2"></i>All Time
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item{% if current_period == 'today' %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='today') }}">
+                            <i class="bi bi-calendar-day me-2"></i>Today
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item{% if current_period == '7d' %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='7d') }}">
+                            <i class="bi bi-calendar-week me-2"></i>Last 7 Days
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item{% if current_period == 'month' %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='month') }}">
+                            <i class="bi bi-calendar-month me-2"></i>Select Month
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item{% if current_period == 'year' %} active{% endif %}"
+                           href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='year') }}">
+                            <i class="bi bi-calendar-range me-2"></i>Select Year
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Dynamic Month Selector -->
+            {% if current_period == 'month' %}
+            <select name="month" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                {% set months = [
+                    ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
+                    ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
+                    ('9', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
+                ] %}
+                {% for m_val, m_name in months %}
+                <option value="{{ m_val }}" {% if current_month|string == m_val|string %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+
+            <!-- Dynamic Year Selector -->
+            {% if current_period == 'month' or current_period == 'year' %}
+            <select name="year" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                {% for y in available_years %}
+                <option value="{{ y }}" {% if current_year|string == y|string %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+
+        </form>
+
+        <a href="/export_excel?q={{ current_q }}&status={{ current_status }}&period={{ current_period }}&month={{ current_month }}&year={{ current_year }}"
+           class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+
+        <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-1 btn-destructive" data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
+            <i class="bi bi-trash3"></i>
+            <span>Clear History</span>
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Clear History Confirmation Modal -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4" style="color: #dc2626;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Clear All History?</h5>
+                <p class="text-muted small mb-4">
+                    Seluruh riwayat pemrosesan OCR akan dihapus permanen dari database. Tindakan ini <strong>tidak dapat dibatalkan</strong>.
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-light px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/reset_db" method="POST" class="d-inline mb-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-danger px-4 rounded-pill fw-semibold btn-destructive">
+                            <i class="bi bi-trash3 me-1"></i>Clear History
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="analytics-card p-4">
+
+    {% if current_q %}
+    <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-4 rounded-3" role="alert">
+        <div>
+            <i class="bi bi-search me-2"></i>
+            Search results for: <strong>{{ current_q }}</strong>
+        </div>
+        <a href="{{ url_for('dashboard.documents', status=current_status, period=current_period) }}"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x me-1"></i>Clear Search
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="table-responsive recent-files-scroll" id="tabelRiwayat" style="max-height: none;">
+
+        <table class="table table-borderless align-middle analytics-users-table mb-0">
+
+            <thead>
+                <tr>
+                    <th class="analytics-th" width="180">Date / Time</th>
+                    <th class="analytics-th">File Name</th>
+                    <th class="analytics-th" width="130">Status</th>
+                    <th class="analytics-th">Processing Time</th>
+                    <th class="analytics-th text-center">Retry</th>
+                    <th class="analytics-th">Size</th>
+                    <th class="analytics-th">Pages</th>
+                    <th class="analytics-th">Author</th>
+                    <th class="analytics-th text-center">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for baris in riwayat %}
+
+                <tr class="analytics-user-row">
+
+                    <td class="small">
+                        <div class="fw-semibold text-dark">{{ baris.waktu }}</div>
+                    </td>
+
+                    <td>
+                        <div class="fw-semibold text-dark text-break" style="font-size: .9rem;">{{ baris.nama_file }}</div>
+                        {% if baris.folder_path and baris.folder_path != '.' %}
+                        <div class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-folder2 me-1"></i>{{ baris.folder_path }}/</div>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if baris.status == 'SUKSES' %}
+                            <span class="badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold">Success</span>
+                        {% elif baris.status == 'SKIP' %}
+                            <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">Skipped</span>
+                        {% else %}
+                            <span class="badge badge-soft-danger px-3 py-1.5 rounded-pill fw-bold">Failed</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="small">
+                        {% if baris.processing_time and baris.processing_time > 0 %}
+                            {{ "%.2f"|format(baris.processing_time) }} s
+                        {% else %}
+                            <span class="badge badge-soft-secondary fw-normal">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="small text-center">
+                        {% if baris.retry_count is defined and baris.retry_count > 0 %}
+                            <span class="badge badge-soft-warning px-2.5 py-1 rounded-pill fw-bold">
+                                {{ baris.retry_count }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">0</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="small text-muted fw-medium">
+                        {{ baris.file_size }}
+                    </td>
+
+                    <td class="small text-muted fw-medium">
+                        {{ baris.page_count }}
+                    </td>
+
+                    <td class="small text-muted fw-medium">
+                        {{ baris.author if baris.author else '-' }}
+                    </td>
+
+                        <td class="text-center">
+
+                            {% if baris.status == 'SUKSES' or baris.status == 'SKIP' %}
+
+                            <a href="{{ url_for('folder.lihat_pdf', filename=baris.document_key) }}"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-primary">
+
+                                <i class="bi bi-eye"></i>
+
+                            </a>
+
+                            {% else %}
+
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+
+                                <i class="bi bi-eye-slash"></i>
+
+                            </button>
+
+                            {% endif %}
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+                        <td colspan="12" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                            No documents found.
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+
+            <div class="text-muted small">
+                {% set start_item = (page - 1) * per_page + 1 %}
+                {% set end_item = [page * per_page, total_data] | min %}
+                {% if total_data > 0 %}
+                Showing {{ start_item }}–{{ end_item }} of {{ total_data }} documents
+                {% else %}
+                No documents found
+                {% endif %}
+                {% if current_q %} for "<strong>{{ current_q }}</strong>"{% endif %}
+                {% if current_status %} | Status: <strong>{{ current_status }}</strong>{% endif %}
+                {% if current_period %} | Range: <strong>{{ current_period_label }}</strong>{% endif %}
+            </div>
+
+            <nav>
+
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- Prev Button -->
+                    <li class="page-item{% if page <= 1 %} disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% if page > 1 %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page-1) }}{% else %}#{% endif %}">
+                            <i class="bi bi-chevron-left"></i> Prev
+                        </a>
+                    </li>
+
+                    <!-- Page Numbers -->
+                    {% set start_page = [1, page - 2] | max %}
+                    {% set end_page = [total_pages, page + 2] | min %}
+
+                    {% if start_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=1) }}">1</a>
+                    </li>
+                    {% if start_page > 2 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    {% endif %}
+
+                    {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item{% if p == page %} active{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=p) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if end_page < total_pages %}
+                    {% if end_page < total_pages - 1 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=total_pages) }}">{{ total_pages }}</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Next Button -->
+                    <li class="page-item{% if page >= total_pages %} disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% if page < total_pages %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page+1) }}{% else %}#{% endif %}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
