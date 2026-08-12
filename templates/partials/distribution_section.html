@@ -1,0 +1,147 @@
+<div class="analytics-card p-4 text-center">
+
+    <h5 class="analytics-section-title text-start mb-3">
+        <i class="bi bi-pie-chart me-2" style="color:#6366f1;"></i>
+        Document Distribution
+    </h5>
+
+    {% set success = stats.total_output %}
+    {% set failed = stats.total_gagal %}
+    {% set waiting = stats.pending %}
+    {% set total_processed = success + failed %}
+    {% set total_input = stats.total_input %}
+    {% set success_rate = (success / total_input * 100) if total_input > 0 else 0 %}
+
+    <!-- Donut Chart Container -->
+    <div class="position-relative mx-auto mb-3" style="max-width: 200px; max-height: 200px;">
+        <canvas id="distributionChart" width="200" height="200"></canvas>
+        <div class="position-absolute top-50 start-50 translate-middle text-center pointer-events-none" style="pointer-events: none;">
+            <div class="fw-bold fs-4 text-dark" id="distribution-rate-text">
+                {{ success_rate|round(0) }}%
+            </div>
+            <div class="small text-muted" style="font-size: 0.72rem;">
+                Success Rate
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Color Legend -->
+    <div class="d-flex justify-content-center gap-3 flex-wrap small mb-3">
+        <div><span class="legend-dot" style="background:#10b981;"></span> Processed</div>
+        <div><span class="legend-dot" style="background:#6366f1;"></span> Pending</div>
+        <div><span class="legend-dot" style="background:#ef4444;"></span> Failed</div>
+    </div>
+
+    <hr class="analytics-divider my-3">
+
+    <!-- Storage Details Section -->
+    <h6 class="text-start small fw-bold text-muted text-uppercase mb-3" style="letter-spacing:.04em; font-size:.74rem;">
+        <i class="bi bi-hdd-stack me-1 text-primary"></i> Storage & Pages Breakdown
+    </h6>
+
+    <div class="row text-start g-2 mb-3">
+
+        <!-- Input Folder Size -->
+        <div class="col-6">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <i class="bi bi-box-arrow-in-down" style="font-size: 0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Input Folder</div>
+                    <div class="fw-bold text-dark" style="font-size: 0.82rem;">{{ stats.input_size }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Folder Size -->
+        <div class="col-6">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-box-arrow-up" style="font-size: 0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Output Folder</div>
+                    <div class="fw-bold text-dark" style="font-size: 0.82rem;">{{ stats.output_size }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Input Pages -->
+        <div class="col-6">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                    <i class="bi bi-file-earmark-text" style="font-size: 0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Input Pages</div>
+                    <div class="fw-bold text-dark" style="font-size: 0.82rem;">{{ stats.total_input_pages }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Output Pages -->
+        <div class="col-6">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="bi bi-file-earmark-check" style="font-size: 0.9rem;"></i>
+                </div>
+                <div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Output Pages</div>
+                    <div class="fw-bold text-dark" style="font-size: 0.82rem;">{{ stats.total_output_pages }}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Disk Usage Progress Bar -->
+    <div class="text-start">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem;">Drive Capacity Used</span>
+            <span class="fw-bold small text-dark" style="font-size: 0.72rem;">{{ stats.used_percent }}%</span>
+        </div>
+        <div class="progress analytics-progress mb-2" style="height: 6px;">
+            {% if stats.used_percent >= 90 %}
+            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ stats.used_percent }}%;"></div>
+            {% elif stats.used_percent >= 70 %}
+            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ stats.used_percent }}%;"></div>
+            {% else %}
+            <div class="progress-bar analytics-progress-bar-gradient" role="progressbar" style="width: {{ stats.used_percent }}%;"></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Free Disk Space -->
+    {% set free_gb = stats.free_bytes / (1024 ** 3) %}
+    <div class="text-start">
+        <div class="d-flex align-items-center justify-content-between small text-muted">
+            <span><i class="bi bi-hdd me-1"></i>Free Drive Space:</span>
+            <span class="fw-bold {% if free_gb > 20 %}text-success{% elif free_gb >= 5 %}text-warning{% else %}text-danger{% endif %}">
+                {{ stats.free_space }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Warning Card if free space < 10 GB -->
+    {% if free_gb < 10 %}
+    <div class="alert {% if free_gb < 5 %}alert-danger{% else %}alert-warning{% endif %} mt-3 mb-0 py-2 px-3 text-start rounded-3" style="font-size: 0.78rem;">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        {% if free_gb < 5 %}
+        <strong>Critical:</strong> Disk space is critically low ({{ "%.1f"|format(free_gb) }} GB remaining).
+        {% else %}
+        <strong>Warning:</strong> Disk space is running low ({{ "%.1f"|format(free_gb) }} GB remaining).
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Embed initial chart data for JS initialization -->
+<script>
+    window.initialDistributionData = {
+        success: {{ success }},
+        pending: {{ waiting }},
+        failed: {{ failed }}
+    };
+</script>

@@ -1,0 +1,30 @@
+{% if current_user and current_user.is_authenticated %}
+<div class="dropdown user-dropdown">
+    <button class="btn btn-white bg-white border border-secondary-subtle shadow-sm rounded-pill px-3 py-1 d-flex align-items-center gap-2 dropdown-toggle text-dark" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle text-primary fs-5"></i>
+        <span class="fw-semibold small text-truncate" style="max-width: 140px;" title="{{ current_user.username }}">{{ current_user.username }}</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2 mt-2" aria-labelledby="userDropdownMenu" style="min-width: 180px;">
+        <li>
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" href="{{ url_for('auth.profile') }}">
+                <i class="bi bi-person-vcard text-primary fs-6"></i>
+                <span class="fw-medium">Profil</span>
+            </a>
+        </li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2 text-danger" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right text-danger fs-6"></i>
+                <span class="fw-medium">Logout</span>
+            </a>
+        </li>
+    </ul>
+</div>
+{% else %}
+<div class="user-profile-badge d-flex align-items-center gap-2">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-sm text-nowrap rounded-pill px-3">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+    </a>
+</div>
+{% endif %}
+

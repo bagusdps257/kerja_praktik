@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}OCR Monitoring{% endblock %}
+
+{% block content %}
+
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+    <div>
+        <h1 class="page-title mb-1">
+            <i class="bi bi-activity me-2" style="color:#6366f1;"></i>OCR Monitoring
+        </h1>
+        <p class="page-subtitle mb-0">
+            Real-time OCR engine status, processing queue, and live terminal logs.
+        </p>
+    </div>
+
+    <div class="text-muted small fw-medium" id="lastUpdated">
+        <i class="bi bi-clock me-1"></i>Last updated: --:--:--
+    </div>
+
+</div>
+
+
+
+<div class="row g-4">
+
+    <!-- TERMINAL LOG -->
+    <div class="col-lg-8">
+
+        <div class="terminal-card h-100">
+
+            <div class="terminal-header">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="terminal-dots">
+                        <span class="terminal-dot terminal-dot-red"></span>
+                        <span class="terminal-dot terminal-dot-yellow"></span>
+                        <span class="terminal-dot terminal-dot-green"></span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 ms-2">
+                        <i class="bi bi-terminal-fill me-1" style="color: #6366f1;"></i>
+                        <span class="fw-bold text-light">ocr_worker_node_alpha.log</span>
+                    </div>
+
+                </div>
+
+                <span class="terminal-status badge badge-soft-secondary px-3 py-1 rounded-pill" style="cursor: pointer; user-select: none;" id="autoScrollToggle" onclick="toggleAutoScroll()">
+                    Auto-scroll: <strong id="autoScrollStatus" class="text-primary">ON</strong>
+                </span>
+
+            </div>
+
+            <div class="terminal-body" id="logBox">
+
+                {% if live_logs %}
+
+                    {% for log in live_logs %}
+                        <div class="terminal-line">
+                            <span class="terminal-time">{{ loop.index }}</span>
+                            <span class="terminal-text">{{ log }}</span>
+                        </div>
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="terminal-line text-muted">
+                        Belum ada log proses OCR.
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ACTIVE QUEUE -->
+    <div class="col-lg-4">
+
+        <div class="analytics-card h-100 p-4 d-flex flex-column">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <h5 class="analytics-section-title mb-0">
+                    <i class="bi bi-list-task me-2" style="color:#6366f1;"></i>
+                    Active Queue
+                </h5>
+
+                <span class="badge badge-soft-primary px-3 py-1.5 rounded-pill fw-bold" id="activeTaskBadge">{{ active_task_count }} Tasks</span>
+
+            </div>
+
+            <div id="queueContainer" class="flex-grow-1">
+
+                {% if queue_tasks %}
+                    {% for task in queue_tasks %}
+                        <div class="queue-item {% if task.status == 'PROCESSING' %}processing{% endif %} p-3 rounded-3 mb-2 border" style="background: #f8fafc;">
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+                                    <div class="fw-semibold text-dark">{{ task.file_name }}</div>
+                                    <div class="text-muted small">{{ task.worker }}</div>
+                                </div>
+
+                                <span class="badge {% if task.status == 'PROCESSING' %}badge-soft-primary{% elif task.status == 'QUEUED' %}badge-soft-secondary{% elif task.status == 'FAILED' %}badge-soft-danger{% else %}badge-soft-success{% endif %} px-2.5 py-1 rounded-pill fw-bold">
+                                    {{ task.status }}
+                                </span>
+
+                            </div>
+
+                            {% if task.status == 'PROCESSING' %}
+                                <div class="small text-muted mt-2">Page {{ task.current_page }} of {{ task.total_pages }}</div>
+
+                                <div class="progress analytics-progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar analytics-progress-bar-gradient" style="width:{{ task.progress }}%"></div>
+                                </div>
+                            {% elif task.pending_files is defined %}
+                                <div class="small text-muted mt-2">{{ task.pending_files }} files</div>
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+                        <div class="fw-semibold">Queue kosong. Tidak ada task aktif.</div>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <div class="mt-auto pt-3">
+
+                <button class="btn {% if queue_paused %}btn-warning{% else %}btn-outline-secondary{% endif %} w-100 rounded-3 py-2 fw-semibold"
+                        id="pauseQueueBtn"
+                        onclick="togglePauseQueue()">
+
+                    <i class="bi {% if queue_paused %}bi-play-circle{% else %}bi-pause-circle{% endif %} me-2"></i>
+                    <span id="pauseQueueText">{% if queue_paused %}Resume Queue{% else %}Pause Queue{% endif %}</span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+let autoScroll = true;
+
+function toggleAutoScroll() {
+    autoScroll = !autoScroll;
+    const el = document.getElementById('autoScrollStatus');
+    if (el) {
+        el.textContent = autoScroll ? 'ON' : 'OFF';
+    }
+}
+
+async function togglePauseQueue() {
+    const btn = document.getElementById('pauseQueueBtn');
+    const isPaused = btn.classList.contains('btn-warning');
+    const url = isPaused ? '/api/queue/resume' : '/api/queue/pause';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    try {
+        const res = await fetch(url, { 
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const json = await res.json();
+        if (json.success) {
+            updatePauseButtonState(json.queue_paused);
+            fetchMonitoringData();
+        }
+    } catch (e) {
+        console.error("Error toggling queue pause:", e);
+    }
+}
+
+function updatePauseButtonState(isPaused) {
+    const btn = document.getElementById('pauseQueueBtn');
+    const text = document.getElementById('pauseQueueText');
+    if (!btn || !text) return;
+
+    if (isPaused) {
+        btn.className = 'btn btn-warning w-100 rounded-3 py-2 fw-semibold';
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'bi bi-play-circle me-2';
+        text.textContent = 'Resume Queue';
+    } else {
+        btn.className = 'btn btn-outline-secondary w-100 rounded-3 py-2 fw-semibold';
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'bi bi-pause-circle me-2';
+        text.textContent = 'Pause Queue';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function updateMonitoringUI(data) {
+    // Engine Health & Status
+    const engineHealth = document.getElementById('engineHealth');
+    if (engineHealth) engineHealth.textContent = data.engine_health;
+
+    const engineBadge = document.getElementById('engineStatusBadge');
+    const engineText = document.getElementById('engineStatusText');
+
+    if (engineBadge && engineText) {
+        engineText.textContent = data.engine_status;
+        if (data.engine_status === 'ONLINE') {
+            engineBadge.className = 'badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold';
+            if (!engineBadge.querySelector('.status-pulse-dot')) {
+                const dot = document.createElement('span');
+                dot.className = 'status-pulse-dot me-1';
+                engineBadge.insertBefore(dot, engineText);
+            }
+        } else if (data.engine_status === 'PAUSED') {
+            engineBadge.className = 'badge badge-soft-warning px-3 py-1.5 rounded-pill fw-bold';
+            const dot = engineBadge.querySelector('.status-pulse-dot');
+            if (dot) dot.remove();
+        } else {
+            engineBadge.className = 'badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold';
+            const dot = engineBadge.querySelector('.status-pulse-dot');
+            if (dot) dot.remove();
+        }
+    }
+
+    const desc = document.getElementById('engineStatusDesc');
+    if (desc) {
+        if (data.engine_status === 'ONLINE') {
+            desc.textContent = 'Engine sedang memproses job OCR...';
+        } else if (data.engine_status === 'PAUSED') {
+            desc.textContent = 'Queue dihentikan sementara oleh admin.';
+        } else {
+            desc.textContent = 'Engine siap menerima job OCR baru.';
+        }
+    }
+
+    // Processing Speed
+    const speedVal = document.getElementById('speedValue');
+    if (speedVal) speedVal.textContent = data.processing_speed + ' docs/hr';
+
+    const speedBar = document.getElementById('speedProgressBar');
+    if (speedBar) {
+        const pct = Math.min(100, data.processing_speed);
+        speedBar.style.width = pct + '%';
+    }
+
+    // Infrastructure Load
+    const cpuText = document.getElementById('cpuText');
+    if (cpuText) cpuText.textContent = data.cpu_usage + '%';
+    const cpuBar = document.getElementById('cpuProgressBar');
+    if (cpuBar) cpuBar.style.width = data.cpu_usage + '%';
+
+    const memText = document.getElementById('memoryText');
+    if (memText) memText.textContent = data.memory_usage + '%';
+    const memBar = document.getElementById('memoryProgressBar');
+    if (memBar) {
+        memBar.style.width = data.memory_usage + '%';
+        memBar.className = data.memory_usage > 80 ? 'progress-bar bg-danger' : 'progress-bar analytics-progress-bar-gradient';
+    }
+
+    // Active Task Badge
+    const taskBadge = document.getElementById('activeTaskBadge');
+    if (taskBadge) taskBadge.textContent = data.active_task_count + ' Tasks';
+
+    // Pause Button State
+    updatePauseButtonState(data.queue_paused);
+
+    // Live Logs
+    const logBox = document.getElementById('logBox');
+    if (logBox && data.live_logs) {
+        logBox.innerHTML = '';
+        if (data.live_logs.length > 0) {
+            data.live_logs.forEach((log, index) => {
+                const line = document.createElement('div');
+                line.className = 'terminal-line';
+                line.innerHTML = `<span class="terminal-time">${index + 1}</span><span class="terminal-text">${escapeHtml(log)}</span>`;
+                logBox.appendChild(line);
+            });
+        } else {
+            logBox.innerHTML = '<div class="terminal-line text-muted">Belum ada log proses OCR.</div>';
+        }
+
+        if (autoScroll) {
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+    }
+
+    // Active Queue List
+    const queueContainer = document.getElementById('queueContainer');
+    if (queueContainer && data.queue_tasks) {
+        queueContainer.innerHTML = '';
+        if (data.queue_tasks.length === 0) {
+            queueContainer.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+                    <div class="fw-semibold">Queue kosong. Tidak ada task aktif.</div>
+                </div>
+            `;
+        } else {
+            data.queue_tasks.forEach(task => {
+                const item = document.createElement('div');
+                const isProc = task.status === 'PROCESSING';
+                item.className = `queue-item ${isProc ? 'processing' : ''} p-3 rounded-3 mb-2 border`;
+                item.style.background = '#f8fafc';
+
+                let badgeClass = 'badge-soft-secondary';
+                if (task.status === 'PROCESSING') badgeClass = 'badge-soft-primary';
+                else if (task.status === 'QUEUED') badgeClass = 'badge-soft-secondary';
+                else if (task.status === 'FAILED') badgeClass = 'badge-soft-danger';
+                else if (task.status === 'COMPLETED') badgeClass = 'badge-soft-success';
+
+                let detailHtml = '';
+                if (isProc) {
+                    detailHtml = `
+                        <div class="small text-muted mt-2">Page ${task.current_page} of ${task.total_pages}</div>
+                        <div class="progress analytics-progress mt-2" style="height: 6px;">
+                            <div class="progress-bar analytics-progress-bar-gradient" style="width:${task.progress}%"></div>
+                        </div>
+                    `;
+                } else if (task.pending_files) {
+                    detailHtml = `<div class="small text-muted mt-2">${task.pending_files} files</div>`;
+                }
+
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="fw-semibold text-dark">${escapeHtml(task.file_name)}</div>
+                            <div class="text-muted small">${escapeHtml(task.worker)}</div>
+                        </div>
+                        <span class="badge ${badgeClass} px-2.5 py-1 rounded-pill fw-bold">${task.status}</span>
+                    </div>
+                    ${detailHtml}
+                `;
+                queueContainer.appendChild(item);
+            });
+        }
+    }
+
+    // Timestamp
+    const lastUpd = document.getElementById('lastUpdated');
+    if (lastUpd) {
+        const now = new Date();
+        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Last updated: ' + now.toLocaleTimeString();
+    }
+}
+
+async function fetchMonitoringData() {
+    try {
+        const response = await fetch('/api/monitoring');
+        const data = await response.json();
+        updateMonitoringUI(data);
+    } catch (e) {
+        console.error("Error fetching monitoring data:", e);
+    }
+}
+
+// Initial scroll and trigger polling
+document.addEventListener('DOMContentLoaded', () => {
+    const logBox = document.getElementById('logBox');
+    if (logBox && autoScroll) {
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+    const lastUpd = document.getElementById('lastUpdated');
+    if (lastUpd) {
+        const now = new Date();
+        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Last updated: ' + now.toLocaleTimeString();
+    }
+});
+
+setInterval(fetchMonitoringData, 2000);
+</script>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+<div class="sidebar">
+
+    <div class="sidebar-logo">
+
+        <div class="logo-box">
+            <i class="bi bi-file-earmark-text"></i>
+        </div>
+
+        <div>
+            <h5 class="mb-0 fw-bold text-primary">OCR & DMS</h5>
+            <small class="text-muted">Jawa Satu Power</small>
+        </div>
+
+    </div>
+
+    <ul class="sidebar-menu">
+
+        <li>
+            <a href="{{ url_for('dashboard.index') }}"
+            class="{% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('dashboard.documents') }}"
+            class="{% if request.endpoint == 'dashboard.documents' %}active{% endif %}">
+
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Documents</span>
+
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('dashboard.monitoring') }}"
+            class="{% if request.endpoint == 'dashboard.monitoring' %}active{% endif %}">
+
+                <i class="bi bi-display"></i>
+                <span>OCR Monitoring</span>
+
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('dashboard.analytics') }}"
+            class="{% if request.endpoint == 'dashboard.analytics' %}active{% endif %}">
+
+                <i class="bi bi-bar-chart"></i>
+                <span>Analytics</span>
+
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('dashboard.settings') }}"
+            class="{% if request.endpoint == 'dashboard.settings' %}active{% endif %}">
+
+                <i class="bi bi-gear"></i>
+                <span>Settings</span>
+
+            </a>
+        </li>
+
+    </ul>
+
+</div>

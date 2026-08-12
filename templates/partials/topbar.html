@@ -1,0 +1,42 @@
+<div class="topbar">
+
+    <form action="{{ url_for('dashboard.documents') }}" method="GET" class="search-box" id="topbar-search-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <i class="bi bi-search"></i>
+        <input type="text" id="topbar-search-input" name="q" value="{{ request.args.get('q', '') }}"
+            placeholder="Search by filename, author, status, path..." autocomplete="off">
+        <!-- Preserve active filters when searching -->
+        {% if request.args.get('status') %}
+        <input type="hidden" name="status" value="{{ request.args.get('status') }}">
+        {% endif %}
+        {% if request.args.get('range') or request.args.get('period') %}
+        <input type="hidden" name="range" value="{{ request.args.get('range', request.args.get('period', '')) }}">
+        {% endif %}
+    </form>
+
+    <div class="topbar-right">
+
+        <div class="dropdown notification-dropdown">
+            <div class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                <i class="bi bi-bell"></i>
+                <span class="notification-badge d-none" id="notification-badge">0</span>
+            </div>
+            <div class="dropdown-menu dropdown-menu-end notification-panel">
+                <div class="notification-header">
+                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                    <a href="#" id="clear-all-notifications" class="text-danger text-decoration-none small fw-semibold"><i class="bi bi-trash3 me-1"></i>Clear all</a>
+                </div>
+                <div class="notification-list" id="notification-list">
+                    <div class="notification-empty">
+                        <i class="bi bi-bell-slash text-muted fs-4"></i>
+                        <p class="text-muted small mt-2 mb-0">No new notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include 'partials/navbar.html' %}
+
+    </div>
+
+</div>

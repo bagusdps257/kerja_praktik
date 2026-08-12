@@ -1,0 +1,13 @@
+.worktrees/
+env/
+__pycache__/
+*.pyc
+logs/
+InputZ/
+inputERORx/
+inputX/
+input_pdf/
+output_pdf/
+scratch/
+config/user_settings.json
+patch_utf8.patch
