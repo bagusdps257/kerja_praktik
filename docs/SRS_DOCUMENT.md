@@ -40,9 +40,9 @@
    - 4.1 Modul 1: Autentikasi dan Manajemen Pengguna (FR-01 s.d FR-03)
    - 4.2 Modul 2: Core Engine OCR dan Multiprocessing (FR-04 s.d FR-07)
    - 4.3 Modul 3: Monitoring Antrean dan Log Terminal (FR-08 s.d FR-09)
-   - 4.4 Modul 4: Manajemen Dokumen dan Pengarsipan Digital (FR-10 s.d FR-11)
-   - 4.5 Modul 5: Analitik Kinerja dan Pelaporan Excel (FR-12 s.d FR-13)
-   - 4.6 Modul 6: Konfigurasi Sistem dan Pemeliharaan Database (FR-14 s.d FR-16)
+   - 4.4 Modul 4: Manajemen Dokumen dan Pengarsipan Digital (FR-10 s.d FR-12)
+   - 4.5 Modul 5: Analitik Kinerja dan Pelaporan Dokumen (FR-13 s.d FR-14)
+   - 4.6 Modul 6: Konfigurasi Sistem dan Pemeliharaan Database (FR-15 s.d FR-17)
 5. [BAB 5: KEBUTUHAN NON-FUNGSIONAL (NON-FUNCTIONAL REQUIREMENTS)](#bab-5-kebutuhan-non-fungsional)
    - 5.1 Parameter Keamanan Sistem (Security Requirements)
    - 5.2 Parameter Kinerja dan Waktu Respon (Performance Requirements)
@@ -77,7 +77,7 @@ Produk perangkat lunak yang dikembangkan adalah sistem digitalisasi arsip berbas
   * Mengekstrak teks dari berkas PDF hasil scan dan citra gambar (`.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.webp`) menggunakan engine Tesseract OCR v5 dan PyMuPDF.
   * Mengonversi dokumen menjadi format **Searchable PDF** (PDF yang teksnya dapat dicari dan disalin) dengan kompresi tingkat tinggi (*high-ratio deflate compression*) tanpa menurunkan keterbacaan visual.
   * Mengoptimalkan beban pemrosesan melalui mekanisme **Smart Skip** untuk dokumen digital dan **Lanczos Smart Upscaling + Dual-Pass PSM** untuk diagram teknis pembangkit.
-  * Menyajikan dasbor pemantauan beban antrean (*real-time queue monitoring*), telemetri hardware server (CPU/RAM/Disk), analitik tren keberhasilan, serta generator laporan spreadsheet Excel multi-sheet.
+  * Menyajikan dasbor pemantauan beban antrean (*real-time queue monitoring*), log terminal live, analitik tren performa & kapasitas penyimpanan drive, ekspor data riwayat ke spreadsheet Excel (`.xlsx`), serta ekspor laporan analitik ke dokumen PDF.
 
 ### 1.3 Definisi, Istilah, dan Singkatan
 Untuk mempermudah pemahaman seluruh pihak yang membaca dokumen ini, berikut adalah daftar definisi istilah yang digunakan:
@@ -107,7 +107,7 @@ Dokumen ini disusun secara hierarkis dan terstruktur:
 * **BAB 1** mendefinisikan latar belakang, tujuan, dan istilah.
 * **BAB 2** menguraikan perspektif umum, fungsi utama, peran pengguna, dan batasan operasional.
 * **BAB 3** menjelaskan kebutuhan antarmuka pengguna, perangkat keras, software pendukung, dan protokol jaringan.
-* **BAB 4** merinci setiap Kebutuhan Fungsional (FR-01 s.d FR-16) per modul.
+* **BAB 4** merinci setiap Kebutuhan Fungsional (FR-01 s.d FR-17) per modul.
 * **BAB 5** merinci Kebutuhan Non-Fungsional (NFR-01 s.d NFR-06) terkait keamanan, performa, dan keandalan.
 * **BAB 6** memuat Pemodelan Use Case standar UML beserta tabel skenario langkah kerja interaksinya.
 * **BAB 7** menyajikan Matriks Keterlacakan (*Traceability Matrix*) yang memetakan kebutuhan ke berkas kode dan automated test.
@@ -157,16 +157,16 @@ Sistem menyediakan enam kelompok kapabilitas fungsional utama:
 1. **Otomatisasi Batch OCR Multiprocessing:** Memproses antrean ratusan dokumen secara paralel dengan pembagian core CPU yang efisien.
 2. **Dual-Pass OCR & Smart Upscaling:** Mampu mengekstrak teks dokumen standar sekaligus diagram alur (*flowchart*) dan skema kelistrikan (*Single Line Diagram*).
 3. **Pengarsipan & Pencarian Multi-Kolom:** Menyimpan seluruh metadata dokumen terindeks (*author, subject, keywords, creation date*) dan menyediakan pencarian instan.
-4. **Live Monitoring & Hardware Telemetry:** Memantau kemajuan proses per halaman dan utilisasi sumber daya CPU/RAM/Disk server.
-5. **Pelaporan Bisnis & Ekspor Excel:** Menyediakan grafik analitik tren performa dan ekspor laporan terformat rapi (`.xlsx`).
-6. **Keamanan & Pemeliharaan Database:** Proteksi login, pembatasan registrasi, pencadangan SQL lengkap, dan penghapusan riwayat terproteksi password.
+4. **Live Monitoring & Log Terminal:** Memantau antrean pengerjaan berkas secara real-time dan menyajikan streaming log terminal worker.
+5. **Pelaporan Analitik & Ekspor Dokumen:** Menyediakan grafik analitik tren performa, visualisasi kapasitas penyimpanan harddisk server, ekspor data dokumen ke spreadsheet Excel (`.xlsx`), dan ekspor laporan analitik ke dokumen PDF.
+6. **Keamanan & Pemeliharaan Database:** Proteksi login, pembatasan registrasi, pencadangan SQL lengkap (16 kolom), dan penghapusan riwayat terproteksi password.
 
 ### 2.3 Profil dan Karakteristik Pengguna
 Sistem dirancang untuk dioperasikan oleh **1 peran aktor utama**, yaitu **Administrator Sistem (Admin)** yang memegang kendali operasional penuh:
 
 | Kategori Pengguna | Tanggung Jawab & Hak Akses | Tingkat Pendidikan / Keahlian |
 |---|---|---|
-| **Administrator (Admin)** | • Melakukan login dan inisiasi akun sistem.<br>• Memicu dan mengontrol pemrosesan batch OCR multiprocessing.<br>• Memantau progress antrean dan telemetri hardware server (CPU/RAM/Disk).<br>• Mencari, memfilter, membuka streaming PDF, dan mengunduh Searchable PDF.<br>• Mengekspor laporan riwayat ke spreadsheet Excel (`.xlsx`).<br>• Mengonfigurasi parameter OCR (DPI render, bahasa, max retry, folder path).<br>• Melakukan pencadangan database SQL lengkap (16 kolom).<br>• Melakukan reset database terproteksi password dengan snapshot JSON otomatis. | Sarjana/Teknisi IT atau Operator Pengarsipan Pembangkit Listrik yang menguasai browser web dan operasional file dokumen. |
+| **Administrator (Admin)** | • Melakukan login dan inisiasi akun sistem.<br>• Memicu dan mengontrol pemrosesan batch OCR multiprocessing.<br>• Memantau progress antrean dan streaming log terminal sistem.<br>• Mencari, memfilter, membuka streaming PDF, dan mengunduh Searchable PDF.<br>• Mengekspor data riwayat dokumen ke spreadsheet Excel (`.xlsx`).<br>• Mengekspor laporan analitik operasional ke dokumen PDF.<br>• Mengonfigurasi parameter OCR (DPI render, bahasa, max retry, folder path).<br>• Melakukan pencadangan database SQL lengkap (16 kolom).<br>• Melakukan reset database terproteksi password dengan snapshot JSON otomatis. | Sarjana/Teknisi IT atau Operator Pengarsipan Pembangkit Listrik yang menguasai browser web dan operasional file dokumen. |
 
 ### 2.4 Batasan-Batasan Teknis dan Lingkungan
 1. **Sistem Operasi Target:** Ubuntu Server 22.04 / 24.04 LTS (didukung pula pada Windows 10/11 untuk workstation pengembangan).
@@ -224,10 +224,10 @@ Antarmuka pengguna dirancang dengan berpedoman pada prinsip modern UI/UX:
 ├─────────┼─────────────────────────────────────────────┼────────────────┤
 │ MOD-01  │ Modul Autentikasi & Hak Akses Pengguna      │ FR-01 s.d FR-03│
 │ MOD-02  │ Modul Core Engine OCR Multiprocessing       │ FR-04 s.d FR-07│
-│ MOD-03  │ Modul Monitoring Antrean & Metrik Server    │ FR-08 s.d FR-09│
-│ MOD-04  │ Modul Manajemen Dokumen & Arsip Digital     │ FR-10 s.d FR-11│
-│ MOD-05  │ Modul Analitik Kinerja & Pelaporan Excel    │ FR-12 s.d FR-13│
-│ MOD-06  │ Modul Pengaturan Sistem & Database          │ FR-14 s.d FR-16│
+│ MOD-03  │ Modul Monitoring Antrean & Log Terminal     │ FR-08 s.d FR-09│
+│ MOD-04  │ Modul Manajemen Dokumen & Arsip Digital     │ FR-10 s.d FR-12│
+│ MOD-05  │ Modul Analitik Kinerja & Pelaporan Dokumen  │ FR-13 s.d FR-14│
+│ MOD-06  │ Modul Pengaturan Sistem & Database          │ FR-15 s.d FR-17│
 └─────────┴─────────────────────────────────────────────┴────────────────┘
 ```
 
@@ -293,46 +293,62 @@ Antarmuka pengguna dirancang dengan berpedoman pada prinsip modern UI/UX:
 
 #### **FR-10: Penelusuran Riwayat & Pencarian Multi-Kolom**
 * **Deskripsi:** Sistem harus menyajikan tabel data seluruh dokumen riwayat pengerjaan OCR dengan fitur:
-  * Pagination (10, 25, 50, 100 data per halaman).
-  * Filter status (*Semua, Sukses, Gagal, Skip*).
-  * Filter rentang tanggal (*Hari Ini, 7 Hari, 30 Hari, Bulan/Tahun Spesifik*).
-  * Pencarian instan multi-kolom (`nama_file`, `folder_path`, `author`, `subject`, `keywords`, `keterangan`).
+  * Pagination fleksibel (pilihan 10, 25, 50, 100 data per halaman).
+  * Filter status pemrosesan (*Semua Status, Sukses, Gagal, Dilewati/Skip*).
+  * Filter rentang tanggal (*Semua Waktu, Hari Ini, 7 Hari Terakhir, Bulan Spesifik, Tahun Spesifik*).
+  * Pencarian instan multi-kolom yang memeriksa kesesuaian kata kunci pada: `nama_file`, `folder_path`, `author`, `subject`, `keywords`, dan `keterangan`.
 
 #### **FR-11: Streaming Penampil PDF Terproteksi (Anti Path-Traversal)**
-* **Deskripsi:** Sistem harus menyediakan penampil file PDF hasil OCR di peramban web melalui rute `/lihat_pdf/<filename>` dengan verifikasi keamanan `os.path.commonpath` untuk memastikan file yang diminta berada di dalam folder output yang sah.
+* **Deskripsi:** Sistem harus menyediakan penampil file PDF hasil OCR langsung di peramban web melalui rute `/lihat_pdf/<filename>` dengan verifikasi keamanan `os.path.commonpath` untuk memastikan file yang diminta berada di dalam folder output yang sah tanpa risiko *Path Traversal*.
+
+#### **FR-12: Ekspor Data Riwayat ke Spreadsheet Excel (.xlsx)**
+* **Deskripsi:** Sistem harus menyediakan tombol **"Ekspor Excel"** pada Halaman Dokumen yang menghasilkan berkas spreadsheet Excel (`.xlsx`) menggunakan library `openpyxl` yang memuat lembar kerja berlabel **"Data Lengkap"** berisi 13 kolom metadata terformat rapi:
+  1. *Waktu Pertama Dicatat*
+  2. *Waktu Terakhir Diproses*
+  3. *Nama File*
+  4. *Status Pemrosesan (dengan pewarnaan sel)*
+  5. *Processing Time (detik)*
+  6. *Retry Count*
+  7. *Keterangan*
+  8. *Ukuran File*
+  9. *Jumlah Halaman*
+  10. *Author / Penulis*
+  11. *Subject / Subjek*
+  12. *Keywords / Kata Kunci*
+  13. *Tanggal Dibuat*
 
 ---
 
-### 4.5 Modul 5: Analitik Kinerja dan Pelaporan Excel
+### 4.5 Modul 5: Analitik Kinerja dan Pelaporan Dokumen
 
-#### **FR-12: Dasbor Analitik Performa Bisnis**
-* **Deskripsi:** Sistem harus mengagregasi data riwayat menjadi metrik analitik:
-  * *Success Rate Percentage* (%) dan rata-rata waktu pemrosesan (detik/file).
-  * Grafik garis tren pengerjaan harian (*Daily Trend Chart*).
-  * Grafik batang volume dokumen masuk (*Document Volume Chart*).
-  * Pemeringkatan kontributor/penulis dokumen teraktif (*Top 5 Authors*).
+#### **FR-13: Dasbor Analitik Performa Bisnis & Penggunaan Penyimpanan Disk**
+* **Deskripsi:** Sistem harus mengagregasi data riwayat dokumen menjadi metrik dan visualisasi analitik interaktif:
+  * Kartu KPI: Total File, Tingkat Keberhasilan (*Success Rate %*), Dokumen Gagal, Dokumen Dilewati (*Skip*), dan Rata-rata Waktu Proses per File.
+  * Grafik Garis Tren Harian (*Daily Trend Line Chart*): Perbandingan dokumen berhasil vs gagal per tanggal.
+  * Grafik Batang Volume (*Document Volume Bar Chart*): Beban total dokumen yang diproses per tanggal.
+  * Pemeringkatan Kontributor Teraktif (*Top 5 Authors*): Distribusi author dokumen terbanyak.
+  * Pemantauan Kapasitas Penyimpanan Harddisk Server (*Storage Breakdown*): Diagram donat persentase disk terpakai, jumlah GB terpakai vs total kapasitas drive, sisa ruang drive kosong, serta ukuran folder output PDF dan file log sistem.
 
-#### **FR-13: Ekspor Laporan Spreadsheet Excel (.xlsx) Multi-Sheet**
-* **Deskripsi:** Sistem harus menghasilkan berkas laporan spreadsheet Excel profesional menggunakan `openpyxl` yang memuat dua lembar kerja:
-  * **Sheet 1 ("Ringkasan"):** Metrik kinerja dan indikator keberhasilan.
-  * **Sheet 2 ("Data Lengkap"):** Tabel riwayat 13 kolom lengkap dengan pewarnaan badge status dan format tanggal rapi.
+#### **FR-14: Ekspor Laporan Analitik ke Dokumen PDF**
+* **Deskripsi:** Sistem harus menyediakan tombol **"Ekspor PDF"** pada Halaman Analitik yang mengeksekusi fungsi cetak / simpan sebagai PDF (`window.print()`) terformat rapi berbasis *CSS Print Styling* untuk menghasilkan laporan fisik analitik operasional siap cetak.
 
 ---
 
 ### 4.6 Modul 6: Konfigurasi Sistem dan Pemeliharaan Database
 
-#### **FR-14: Pengaturan Konfigurasi Runtime Dinamis**
-* **Deskripsi:** Administrator dapat mengubah konfigurasi sistem tanpa restart server:
+#### **FR-15: Pengaturan Konfigurasi Runtime Dinamis**
+* **Deskripsi:** Administrator dapat mengubah konfigurasi sistem secara dinamis melalui antarmuka web tanpa perlu me-restart server:
   * Resolusi Rendering DPI (72 s.d 600 DPI, default 150/200 DPI).
   * Jumlah Maksimal Percobaan Ulang / Max Retry (1 s.d 10 kali).
   * Bahasa OCR (`ind`, `eng`, `ind+eng`).
   * Batas Peringatan Kapasitas Penyimpanan (50% s.d 95%).
+  * Jalur Direktori Folder Input dan Output Server.
 
-#### **FR-15: Pencadangan Database SQL Lengkap (16 Kolom)**
-* **Deskripsi:** Sistem menyediakan tombol **Cadangkan Data** yang menghasilkan file `.sql` siap restore yang memuat struktur tabel dan seluruh data 16 kolom riwayat tanpa ada metadata yang hilang.
+#### **FR-16: Pencadangan Database SQL Lengkap (16 Kolom)**
+* **Deskripsi:** Sistem menyediakan tombol **"Cadangkan Data"** yang menghasilkan berkas `.sql` siap restore yang memuat struktur tabel dan seluruh data 16 kolom riwayat lengkap (termasuk kolom `subject` dan `keywords`).
 
-#### **FR-16: Penghapusan Riwayat Terproteksi Password & Auto-Snapshot**
-* **Deskripsi:** Aksi reset database (`/reset_db`) **wajib meminta verifikasi password akun pengguna**. Sebelum penghapusan data dieksekusi di MySQL, sistem harus otomatis menyimpan snapshot data cadangan berformat JSON di folder `logs/auto_backups/`.
+#### **FR-17: Penghapusan Riwayat Terproteksi Password & Auto-Snapshot JSON**
+* **Deskripsi:** Aksi pembersihan database (`/reset_db`) **wajib meminta verifikasi password akun administrator**. Sebelum penghapusan baris data dieksekusi di database MySQL, sistem harus otomatis membuat file snapshot cadangan berformat JSON di folder `logs/auto_backups/snapshot_before_reset_*.json` untuk mencegah kehilangan data (*Zero Data Loss*).
 
 ---
 
@@ -405,17 +421,18 @@ flowchart LR
         UC_StartOCR(["UC-04: Menjalankan Batch OCR"])
         UC_StopOCR(["UC-05: Menghentikan / Jeda Antrean"])
         
-        UC_Monitor(["UC-06: Memantau Antrean & Metrik Hardware"])
+        UC_Monitor(["UC-06: Memantau Antrean & Log Terminal"])
         UC_Documents(["UC-07: Mencari & Memfilter Dokumen Arsip"])
         UC_ViewPDF(["UC-08: Membuka & Streaming Searchable PDF"])
+        UC_ExportExcel(["UC-09: Mengekspor Data ke Excel (.xlsx)"])
         
-        UC_Analytics(["UC-09: Melihat Dasbor Analitik & Tren"])
-        UC_ExportExcel(["UC-10: Mengekspor Laporan ke Excel (.xlsx)"])
+        UC_Analytics(["UC-10: Melihat Dasbor Analitik & Storage"])
+        UC_ExportPDF(["UC-11: Mengekspor Laporan Analitik ke PDF"])
         
-        UC_Settings(["UC-11: Mengubah Konfigurasi OCR & Path"])
-        UC_BackupDB(["UC-12: Mencadangkan Database SQL"])
-        UC_ResetDB(["UC-13: Menghapus Riwayat Database"])
-        UC_VerifyPass(["UC-14: Verifikasi Password Konfirmasi"])
+        UC_Settings(["UC-12: Mengubah Konfigurasi OCR & Path"])
+        UC_BackupDB(["UC-13: Mencadangkan Database SQL"])
+        UC_ResetDB(["UC-14: Menghapus Riwayat Database"])
+        UC_VerifyPass(["UC-15: Verifikasi Password Konfirmasi"])
     end
 
     %% Hubungan Asosiasi Administrator ke Seluruh Use Case Utama
@@ -426,8 +443,9 @@ flowchart LR
     Admin --> UC_Monitor
     Admin --> UC_Documents
     Admin --> UC_ViewPDF
-    Admin --> UC_Analytics
     Admin --> UC_ExportExcel
+    Admin --> UC_Analytics
+    Admin --> UC_ExportPDF
     Admin --> UC_Settings
     Admin --> UC_BackupDB
     Admin --> UC_ResetDB
@@ -438,8 +456,9 @@ flowchart LR
     UC_Monitor -.->|«include»| UC_Login
     UC_Documents -.->|«include»| UC_Login
     UC_ViewPDF -.->|«include»| UC_Login
-    UC_Analytics -.->|«include»| UC_Login
     UC_ExportExcel -.->|«include»| UC_Login
+    UC_Analytics -.->|«include»| UC_Login
+    UC_ExportPDF -.->|«include»| UC_Login
     UC_Settings -.->|«include»| UC_Login
     UC_BackupDB -.->|«include»| UC_Login
     UC_ResetDB -.->|«include»| UC_Login
@@ -476,21 +495,21 @@ flowchart LR
 | **Aktor Utama** | Administrator |
 | **Deskripsi Singkat** | Administrator memicu pipeline ekstraksi OCR multiprocessing pada folder input dokumen. |
 | **Pre-kondisi** | Administrator telah login (`<<include>> UC-01`) dan berkas PDF/gambar tersedia di folder input. |
-| **Alur Utama (*Basic Flow*)** | 1. Administrator mengklik tombol **"Mulai OCR"** pada halaman Dasbor atau Monitoring.<br>2. Sistem memvalidasi bahwa tidak ada proses background lain yang sedang berjalan.<br>3. Sistem membuat thread daemon yang menjalankan `core_engine.jalankan_sistem_ocr()`.<br>4. Sistem langsung mengalihkan tampilan ke halaman Monitoring dengan status *Running*.<br>5. Background worker memindai folder input secara rekursif.<br>6. Untuk setiap berkas: worker mengecek Smart Skip teks digital, menerapkan Lanczos Upscaling jika diagram, mengeksekusi Tesseract OCR, dan menyimpan hasilnya ke folder output.<br>7. Worker mencatat riwayat metadata ke database MySQL dan meng-update progress live. |
+| **Alur Utama (*Basic Flow*)** | 1. Administrator mengklik tombol **"Mulai OCR"** pada halaman Dasbor Utama.<br>2. Sistem memvalidasi bahwa tidak ada proses background lain yang sedang berjalan.<br>3. Sistem membuat thread daemon yang menjalankan `core_engine.jalankan_sistem_ocr()`.<br>4. Sistem langsung mengalihkan tampilan ke halaman Monitoring dengan status *Running*.<br>5. Background worker memindai folder input secara rekursif.<br>6. Untuk setiap berkas: worker mengecek Smart Skip teks digital, menerapkan Lanczos Upscaling jika diagram, mengeksekusi Tesseract OCR, dan menyimpan hasilnya ke folder output.<br>7. Worker mencatat riwayat metadata ke database MySQL dan meng-update progress live. |
 | **Alur Alternatif (*Alternative Flow*)** | **2a. Proses OCR sedang berjalan:** Sistem menolak trigger ganda dan menampilkan peringatan bahwa OCR sedang aktif.<br>**5a. Folder input kosong:** Sistem mencatat log bahwa tidak ada file yang perlu diproses dan status kembali menjadi IDLE.<br>**7a. Interupsi Stop:** Jika Administrator menekan tombol Stop (`<<extend>> UC-05`), worker pool segera dibatalkan dan status berubah menjadi STOPPED. |
 | **Post-kondisi** | Seluruh berkas Searchable PDF tersimpan di folder output dan riwayat tercatat lengkap di tabel `riwayat`. |
 
 ---
 
-#### **Skenario Use Case 3: Menghapus Riwayat Database Terproteksi (UC-13)**
+#### **Skenario Use Case 3: Menghapus Riwayat Database Terproteksi (UC-14)**
 
 | Elemen Skenario | Penjelasan Rinci |
 |---|---|
-| **ID & Nama Use Case** | **UC-13: Menghapus Riwayat Database** |
+| **ID & Nama Use Case** | **UC-14: Menghapus Riwayat Database** |
 | **Aktor Utama** | Administrator |
 | **Deskripsi Singkat** | Administrator membersihkan data histori pemrosesan dokumen dari database dengan verifikasi password dan pencadangan snapshot otomatis. |
 | **Pre-kondisi** | Administrator telah login (`<<include>> UC-01`) dan membuka halaman Dokumen. |
-| **Alur Utama (*Basic Flow*)** | 1. Administrator mengklik tombol **"Hapus Riwayat"**.<br>2. Sistem menampilkan modal konfirmasi keamanan yang meminta password akun.<br>3. Administrator memasukkan password akun dan mengonfirmasi penghapusan (`<<extend>> UC-14`).<br>4. Sistem memverifikasi kebenaran password administrator.<br>5. Sistem otomatis membuat file cadangan snapshot JSON di `logs/auto_backups/snapshot_before_reset_*.json`.<br>6. Sistem menjalankan perintah `DELETE` pada tabel `riwayat` dan mereset cache statistik.<br>7. Sistem menampilkan notifikasi sukses pembersihan data beserta informasi file snapshot. |
+| **Alur Utama (*Basic Flow*)** | 1. Administrator mengklik tombol **"Hapus Riwayat"**.<br>2. Sistem menampilkan modal konfirmasi keamanan yang meminta password akun.<br>3. Administrator memasukkan password akun dan mengonfirmasi penghapusan (`<<extend>> UC-15`).<br>4. Sistem memverifikasi kebenaran password administrator.<br>5. Sistem otomatis membuat file cadangan snapshot JSON di `logs/auto_backups/snapshot_before_reset_*.json`.<br>6. Sistem menjalankan perintah `DELETE` pada tabel `riwayat` dan mereset cache statistik.<br>7. Sistem menampilkan notifikasi sukses pembersihan data beserta informasi file snapshot. |
 | **Alur Alternatif (*Alternative Flow*)** | **4a. Password salah:** Sistem membatalkan aksi hapus, menampilkan notifikasi error bahaya, dan tidak ada baris data yang dihapus. |
 | **Post-kondisi** | Tabel `riwayat` kosong/bersih, namun data historis tetap tersimpan aman pada file cadangan snapshot JSON di server. |
 
@@ -506,19 +525,20 @@ flowchart LR
 | **FR-01** | Autentikasi Pengguna & Sesi | `routes/auth.py`, `models/user_model.py` | `templates/login.html` | `tests/test_auth.py` | 🟢 PASSED |
 | **FR-02** | Penguncian Registrasi Publik | `routes/auth.py`, `config/settings.py` | `templates/register.html` | `tests/test_auth.py` | 🟢 PASSED |
 | **FR-03** | Manajemen Profil & Ubah Password | `routes/auth.py`, `models/user_model.py` | `templates/profile.html` | `tests/test_auth.py` | 🟢 PASSED |
-| **FR-04** | Pemindaian Rekursif Folder | `core_engine.py` | `templates/monitoring.html` | `tests/test_database.py` | 🟢 PASSED |
+| **FR-04** | Pemindaian Rekursif Folder | `core_engine.py` | `templates/index.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-05** | Multiprocessing Searchable PDF | `core_engine.py` | `templates/monitoring.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-06** | Optimasi Smart Skip Teks | `core_engine.py` | `templates/monitoring.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-07** | Lanczos Upscaling & Dual-Pass PSM | `core_engine.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
-| **FR-08** | Monitoring Antrean & Kontrol Jeda | `routes/dashboard.py`, `services/progress_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
+| **FR-08** | Monitoring Antrean & Kontrol Stop/Jeda | `routes/ocr.py`, `routes/dashboard.py` | `templates/monitoring.html`, `templates/index.html` | `tests/test_analytics.py` | 🟢 PASSED |
 | **FR-09** | Live Log Terminal Konsol | `services/system_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
 | **FR-10** | Tabel Riwayat & Multi-Pencarian | `models/dashboard_model.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-11** | Streaming PDF Anti Path-Traversal | `routes/folder.py` | `templates/documents.html` | `tests/test_security.py` | 🟢 PASSED |
-| **FR-12** | Dasbor Analitik & Grafik Tren | `services/analytics_service.py` | `templates/analytics.html` | `tests/test_analytics.py` | 🟢 PASSED |
-| **FR-13** | Ekspor Laporan Excel Multi-Sheet | `routes/export.py` | `templates/documents.html` | `tests/test_export.py` | 🟢 PASSED |
-| **FR-14** | Pengaturan Runtime Dinamis | `services/settings_service.py` | `templates/settings.html` | `tests/test_settings.py` | 🟢 PASSED |
-| **FR-15** | Pencadangan 16 Kolom SQL | `routes/dashboard.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
-| **FR-16** | Reset DB Password & Auto-Snapshot | `routes/dashboard.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
+| **FR-12** | Ekspor Data Riwayat ke Excel (.xlsx) | `routes/export.py` | `templates/documents.html` | `tests/test_export.py` | 🟢 PASSED |
+| **FR-13** | Dasbor Analitik & Kapasitas Storage | `services/analytics_service.py` | `templates/analytics.html` | `tests/test_analytics.py` | 🟢 PASSED |
+| **FR-14** | Ekspor Laporan Analitik ke Dokumen PDF | `routes/dashboard.py` | `templates/analytics.html` | `tests/test_analytics.py` | 🟢 PASSED |
+| **FR-15** | Pengaturan Runtime Dinamis | `services/settings_service.py` | `templates/settings.html` | `tests/test_settings.py` | 🟢 PASSED |
+| **FR-16** | Pencadangan 16 Kolom SQL | `routes/dashboard.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
+| **FR-17** | Reset DB Password & Auto-Snapshot | `routes/dashboard.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
 
 ---
 
