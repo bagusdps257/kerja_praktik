@@ -62,20 +62,34 @@ def update_folder():
 @folder_bp.route("/lihat_pdf/<path:filename>")
 @login_required
 def lihat_pdf(filename):
-
     folder_output = os.path.abspath(db_model.output_dir)
-    clean_filename = filename.strip('/')
+    clean_filename = filename.strip('/\\')
     target = os.path.abspath(os.path.join(folder_output, clean_filename))
 
-    # Direct check
-    if target.startswith(folder_output) and os.path.isfile(target):
+    def is_safe_path(candidate):
+        try:
+            return os.path.commonpath([candidate, folder_output]) == folder_output
+        except Exception:
+            return False
+
+    # 1. Cek langsung file sesuai nama yang diminta
+    if is_safe_path(target) and os.path.isfile(target):
         return send_from_directory(os.path.dirname(target), os.path.basename(target))
 
-    # Search by relative path or basename fallback
+    # 2. Cek apakah berkas merupakan hasil konversi gambar ke .pdf
+    pdf_version = os.path.splitext(clean_filename)[0] + ".pdf"
+    target_pdf = os.path.abspath(os.path.join(folder_output, pdf_version))
+    if is_safe_path(target_pdf) and os.path.isfile(target_pdf):
+        return send_from_directory(os.path.dirname(target_pdf), os.path.basename(target_pdf))
+
+    # 3. Fallback: cari file berdasarkan basename di subfolder output
     file_basename = os.path.basename(clean_filename)
+    pdf_basename = os.path.splitext(file_basename)[0] + ".pdf"
     for root, dirs, files in os.walk(folder_output):
         if file_basename in files:
             return send_from_directory(root, file_basename)
+        if pdf_basename in files:
+            return send_from_directory(root, pdf_basename)
 
     return "File tidak ditemukan", 404
 
@@ -84,39 +98,87 @@ def lihat_pdf(filename):
 @login_required
 def api_folders():
     req_path = request.args.get("path", "").strip()
+    from config.settings import BASE_DIR
     
-    # If empty, return drives on Windows or root on Linux
+    # Default to project BASE_DIR if empty
     if not req_path:
-        import string
-        if os.name == 'nt':
-            drives = [f"{d}:\\" for d in string.ascii_uppercase if os.path.exists(f"{d}:\\")]
-            return jsonify({"current": "", "parent": None, "folders": drives})
-        else:
-            req_path = "/"
+        req_path = BASE_DIR
             
-    if not os.path.isdir(req_path):
-        return jsonify({"error": "Invalid path"}), 400
+    abs_path = os.path.abspath(req_path)
+
+    # Block exploration of critical OS system directories
+    forbidden_paths = [
+        "/etc", "/proc", "/sys", "/root", "/boot", "/dev", "/run", "/var/log",
+        r"C:\Windows", r"C:\Program Files", r"C:\Program Files (x86)", r"C:\ProgramData"
+    ]
+    for forbidden in forbidden_paths:
+        try:
+            if abs_path == os.path.abspath(forbidden) or os.path.commonpath([abs_path, os.path.abspath(forbidden)]) == os.path.abspath(forbidden):
+                return jsonify({"error": "Akses ke direktori sistem dibatasi.", "current": BASE_DIR, "folders": []}), 403
+        except Exception:
+            pass
+
+    if not os.path.isdir(abs_path):
+        return jsonify({"error": "Direktori tidak ditemukan."}), 400
         
-    parent = os.path.dirname(req_path)
-    if parent == req_path:
-        parent = None # Reached root
+    parent = os.path.dirname(abs_path)
+    if parent == abs_path:
+        parent = None
         
     try:
-        items = os.listdir(req_path)
+        items = os.listdir(abs_path)
         folders = []
         for item in items:
             try:
-                full_path = os.path.join(req_path, item)
+                full_path = os.path.join(abs_path, item)
                 if os.path.isdir(full_path) and not item.startswith('.'):
                     folders.append(item)
             except Exception:
                 pass
         folders.sort()
         return jsonify({
-            "current": req_path,
+            "current": abs_path,
             "parent": parent,
             "folders": folders
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@folder_bp.route("/api/check_folder")
+@login_required
+def api_check_folder():
+    raw_path = request.args.get("path", "").strip()
+    if not raw_path:
+        return jsonify({"valid": False, "exists": False, "message": "Jalur folder kosong"})
+    
+    abs_path = os.path.abspath(raw_path)
+    if not os.path.exists(abs_path):
+        return jsonify({"valid": False, "exists": False, "message": "Folder belum ada di server"})
+    
+    if not os.path.isdir(abs_path):
+        return jsonify({"valid": False, "exists": True, "message": "Jalur yang dimasukkan adalah file, bukan folder"})
+    
+    # Count files
+    try:
+        valid_exts = ('.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.bmp')
+        matching_count = 0
+        total_files = 0
+        for root, dirs, files in os.walk(abs_path):
+            for f in files:
+                total_files += 1
+                if f.lower().endswith(valid_exts):
+                    matching_count += 1
+        
+        return jsonify({
+            "valid": True,
+            "exists": True,
+            "abs_path": abs_path,
+            "total_files": total_files,
+            "matching_count": matching_count,
+            "message": f"Folder valid ({matching_count} dokumen terdeteksi)"
+        })
+    except Exception as e:
+        return jsonify({"valid": False, "exists": True, "message": f"Akses folder terbatas: {str(e)}"})
+
 

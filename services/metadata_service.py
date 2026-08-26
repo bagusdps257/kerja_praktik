@@ -8,16 +8,19 @@ IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.tiff', '.tif', '.bmp', '.webp')
 def sedot_metadata(file_path):
     """
     Mengambil metadata PDF atau gambar tanpa melakukan OCR.
+    Mengembalikan (size_str, pages_str, author_str, date_str, subject_str, keywords_str).
     """
 
     size_str = "-"
     pages_str = "-"
     author_str = "-"
     date_str = "-"
+    subject_str = "-"
+    keywords_str = "-"
 
     try:
         if not os.path.exists(file_path):
-            return size_str, pages_str, author_str, date_str
+            return size_str, pages_str, author_str, date_str, subject_str, keywords_str
 
         ukuran = os.path.getsize(file_path)
 
@@ -36,25 +39,22 @@ def sedot_metadata(file_path):
             metadata = doc.metadata
 
             if metadata:
-
                 author_str = metadata.get("author") or "-"
+                subject_str = metadata.get("subject") or "-"
+                keywords_str = metadata.get("keywords") or "-"
 
                 creation = metadata.get("creationDate")
 
                 if creation:
-
                     if creation.startswith("D:"):
-
                         try:
                             date_str = (
                                 f"{creation[8:10]}-"
                                 f"{creation[6:8]}-"
                                 f"{creation[2:6]}"
                             )
-
                         except Exception:
                             date_str = creation
-
                     else:
                         date_str = creation
 
@@ -73,5 +73,7 @@ def sedot_metadata(file_path):
         size_str,
         pages_str,
         author_str,
-        date_str
+        date_str,
+        subject_str,
+        keywords_str
     )

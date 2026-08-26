@@ -8,10 +8,10 @@
 
     <div>
         <h1 class="page-title mb-1">
-            <i class="bi bi-folder2-open me-2" style="color:#6366f1;"></i>Documents Management
+            <i class="bi bi-folder2-open me-2" style="color:#0284c7;"></i>Kelola Dokumen
         </h1>
         <p class="page-subtitle mb-0">
-            Search, filter, and manage processed OCR documents.
+            Cari, filter, dan kelola dokumen OCR Anda.
         </p>
     </div>
 
@@ -28,15 +28,15 @@
 
             <!-- Status Dropdown -->
             <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-funnel me-1"></i>Status: {{ current_status if current_status else 'All' }}
+                <button class="btn btn-filter-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel me-1 text-primary"></i>Status: {{ current_status if current_status else 'Semua Status' }}
                 </button>
                 <ul class="dropdown-menu">
                     {% set status_opts = [
-                        {'label': 'All Status', 'value': ''},
-                        {'label': 'Success', 'value': 'SUKSES'},
-                        {'label': 'Failed', 'value': 'GAGAL'},
-                        {'label': 'Skipped', 'value': 'SKIP'}
+                        {'label': 'Semua Status', 'value': ''},
+                        {'label': 'Sukses', 'value': 'SUKSES'},
+                        {'label': 'Gagal', 'value': 'GAGAL'},
+                        {'label': 'Dilewati', 'value': 'SKIP'}
                     ] %}
                     {% for opt in status_opts %}
                     <li>
@@ -51,39 +51,39 @@
 
             <!-- Time Range Dropdown -->
             <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-calendar3 me-1"></i>{{ current_period_label if current_period_label else 'All Time' }}
+                <button class="btn btn-filter-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-calendar3 me-1 text-primary"></i>{{ current_period_label if current_period_label else 'Semua Waktu' }}
                 </button>
                 <ul class="dropdown-menu">
                     <li>
                         <a class="dropdown-item{% if not current_period %} active{% endif %}"
                            href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='') }}">
-                            <i class="bi bi-clock-history me-2"></i>All Time
+                            <i class="bi bi-clock-history me-2"></i>Semua Waktu
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item{% if current_period == 'today' %} active{% endif %}"
                            href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='today') }}">
-                            <i class="bi bi-calendar-day me-2"></i>Today
+                            <i class="bi bi-calendar-day me-2"></i>Hari Ini
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item{% if current_period == '7d' %} active{% endif %}"
                            href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='7d') }}">
-                            <i class="bi bi-calendar-week me-2"></i>Last 7 Days
+                            <i class="bi bi-calendar-week me-2"></i>7 Hari Terakhir
                         </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item{% if current_period == 'month' %} active{% endif %}"
                            href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='month') }}">
-                            <i class="bi bi-calendar-month me-2"></i>Select Month
+                            <i class="bi bi-calendar-month me-2"></i>Pilih Bulan
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item{% if current_period == 'year' %} active{% endif %}"
                            href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period='year') }}">
-                            <i class="bi bi-calendar-range me-2"></i>Select Year
+                            <i class="bi bi-calendar-range me-2"></i>Pilih Tahun
                         </a>
                     </li>
                 </ul>
@@ -91,7 +91,7 @@
 
             <!-- Dynamic Month Selector -->
             {% if current_period == 'month' %}
-            <select name="month" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+            <select name="month" class="form-select shadow-sm border-primary" style="width: auto; padding: 8px 14px; font-size: 0.88rem; border-radius: 10px;" onchange="this.form.submit()">
                 {% set months = [
                     ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
                     ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
@@ -105,7 +105,7 @@
 
             <!-- Dynamic Year Selector -->
             {% if current_period == 'month' or current_period == 'year' %}
-            <select name="year" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+            <select name="year" class="form-select shadow-sm border-primary" style="width: auto; padding: 8px 14px; font-size: 0.88rem; border-radius: 10px;" onchange="this.form.submit()">
                 {% for y in available_years %}
                 <option value="{{ y }}" {% if current_year|string == y|string %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
@@ -114,14 +114,22 @@
 
         </form>
 
-        <a href="/export_excel?q={{ current_q }}&status={{ current_status }}&period={{ current_period }}&month={{ current_month }}&year={{ current_year }}"
-           class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        <a href="/export_excel?source=documents&q={{ current_q }}&status={{ current_status }}&period={{ current_period }}&month={{ current_month }}&year={{ current_year }}"
+           class="btn btn-gradient-export d-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold text-nowrap" style="font-size: 0.88rem;">
+            <i class="bi bi-file-earmark-excel me-2 fs-6"></i>
+            <span>Ekspor Excel</span>
         </a>
 
-        <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-1 btn-destructive" data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
-            <i class="bi bi-trash3"></i>
-            <span>Clear History</span>
+        <a href="{{ url_for('dashboard.backup_db') }}"
+           class="btn btn-gradient-backup d-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold text-nowrap" style="font-size: 0.88rem;"
+           title="Unduh salinan cadangan seluruh data sistem">
+            <i class="bi bi-cloud-arrow-down me-2 fs-6"></i>
+            <span>Cadangkan Data</span>
+        </a>
+
+        <button type="button" class="btn btn-gradient-destructive d-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold text-nowrap" style="font-size: 0.88rem;" data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
+            <i class="bi bi-trash3 me-2 fs-6"></i>
+            <span>Hapus Riwayat</span>
         </button>
 
     </div>
@@ -130,26 +138,38 @@
 
 <!-- Clear History Confirmation Modal -->
 <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-            <div class="modal-body text-center p-4">
-                <div class="d-flex align-items-center justify-content-center mx-auto mb-3"
-                     style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2;">
-                    <i class="bi bi-exclamation-triangle-fill fs-4" style="color: #dc2626;"></i>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2;">
+                        <i class="bi bi-shield-exclamation fs-3" style="color: #dc2626;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1">Konfirmasi Hapus Riwayat</h5>
+                    <p class="text-muted small mb-0">
+                        Seluruh riwayat akan dihapus. Cadangan snapshot otomatis akan dibuat sebelum penghapusan.
+                    </p>
                 </div>
-                <h5 class="fw-bold mb-2">Clear All History?</h5>
-                <p class="text-muted small mb-4">
-                    Seluruh riwayat pemrosesan OCR akan dihapus permanen dari database. Tindakan ini <strong>tidak dapat dibatalkan</strong>.
-                </p>
-                <div class="d-flex gap-2 justify-content-center">
-                    <button type="button" class="btn btn-light px-4 rounded-pill fw-semibold" data-bs-dismiss="modal">Cancel</button>
-                    <form action="/reset_db" method="POST" class="d-inline mb-0">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <button type="submit" class="btn btn-danger px-4 rounded-pill fw-semibold btn-destructive">
-                            <i class="bi bi-trash3 me-1"></i>Clear History
+
+                <form action="/reset_db" method="POST" class="mt-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="mb-3 text-start">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Password Akun Anda</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control border-start-0" placeholder="Masukkan password untuk konfirmasi" required autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <button type="button" class="btn btn-light px-3.5 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-gradient-destructive px-3.5 py-2 rounded-3 fw-semibold">
+                            <i class="bi bi-trash3 me-1"></i>Hapus Riwayat
                         </button>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -157,15 +177,40 @@
 
 <div class="analytics-card p-4">
 
-    {% if current_q %}
-    <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-4 rounded-3" role="alert">
-        <div>
-            <i class="bi bi-search me-2"></i>
-            Search results for: <strong>{{ current_q }}</strong>
-        </div>
-        <a href="{{ url_for('dashboard.documents', status=current_status, period=current_period) }}"
-           class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-x me-1"></i>Clear Search
+    <!-- ACTIVE FILTER PILLS -->
+    {% if current_q or (current_status and current_status != 'ALL') or (current_period and current_period != 'ALL') %}
+    <div class="filter-pills-bar mb-3">
+        <span class="small fw-bold text-muted me-1"><i class="bi bi-funnel-fill me-1"></i>Filter Aktif:</span>
+        
+        {% if current_q %}
+        <span class="filter-pill">
+            <span>Pencarian: "<strong>{{ current_q }}</strong>"</span>
+            <a href="{{ url_for('dashboard.documents', status=current_status, period=current_period) }}" class="btn-remove-filter" title="Hapus Filter Pencarian">
+                <i class="bi bi-x-circle-fill"></i>
+            </a>
+        </span>
+        {% endif %}
+
+        {% if current_status and current_status != 'ALL' %}
+        <span class="filter-pill">
+            <span>Status: <strong>{{ current_status }}</strong></span>
+            <a href="{{ url_for('dashboard.documents', q=current_q, period=current_period) }}" class="btn-remove-filter" title="Hapus Filter Status">
+                <i class="bi bi-x-circle-fill"></i>
+            </a>
+        </span>
+        {% endif %}
+
+        {% if current_period and current_period != 'ALL' %}
+        <span class="filter-pill">
+            <span>Periode: <strong>{{ current_period }}</strong></span>
+            <a href="{{ url_for('dashboard.documents', q=current_q, status=current_status) }}" class="btn-remove-filter" title="Hapus Filter Periode">
+                <i class="bi bi-x-circle-fill"></i>
+            </a>
+        </span>
+        {% endif %}
+
+        <a href="{{ url_for('dashboard.documents') }}" class="btn btn-sm btn-link text-danger text-decoration-none fw-semibold ms-auto py-0">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Semua
         </a>
     </div>
     {% endif %}
@@ -176,15 +221,17 @@
 
             <thead>
                 <tr>
-                    <th class="analytics-th" width="180">Date / Time</th>
-                    <th class="analytics-th">File Name</th>
+                    <th class="analytics-th" width="180">Waktu</th>
+                    <th class="analytics-th">Nama File</th>
                     <th class="analytics-th" width="130">Status</th>
-                    <th class="analytics-th">Processing Time</th>
-                    <th class="analytics-th text-center">Retry</th>
-                    <th class="analytics-th">Size</th>
-                    <th class="analytics-th">Pages</th>
+                    <th class="analytics-th">Waktu Proses</th>
+                    <th class="analytics-th text-center">Coba Ulang</th>
+                    <th class="analytics-th">Ukuran</th>
+                    <th class="analytics-th">Halaman</th>
                     <th class="analytics-th">Author</th>
-                    <th class="analytics-th text-center">Action</th>
+                    <th class="analytics-th">Subject</th>
+                    <th class="analytics-th">Keywords</th>
+                    <th class="analytics-th text-center" style="width: 120px; min-width: 120px;">Aksi</th>
                 </tr>
             </thead>
 
@@ -196,10 +243,20 @@
 
                     <td class="small">
                         <div class="fw-semibold text-dark">{{ baris.waktu }}</div>
+                        {% if baris.updated_waktu and baris.updated_waktu != baris.waktu %}
+                        <div class="text-muted" style="font-size: 0.72rem;" title="Terakhir Diproses">
+                            <i class="bi bi-arrow-repeat me-1 text-primary"></i>{{ baris.updated_waktu }}
+                        </div>
+                        {% endif %}
                     </td>
 
                     <td>
-                        <div class="fw-semibold text-dark text-break" style="font-size: .9rem;">{{ baris.nama_file }}</div>
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="fw-semibold text-dark text-break" style="font-size: .9rem;">{{ baris.nama_file }}</span>
+                            <button type="button" class="btn-copy" onclick="copyToClipboard(this, '{{ baris.nama_file }}', 'Nama file')" title="Salin nama file">
+                                <i class="bi bi-copy"></i>
+                            </button>
+                        </div>
                         {% if baris.folder_path and baris.folder_path != '.' %}
                         <div class="text-muted" style="font-size: 0.72rem;"><i class="bi bi-folder2 me-1"></i>{{ baris.folder_path }}/</div>
                         {% endif %}
@@ -207,11 +264,11 @@
 
                     <td>
                         {% if baris.status == 'SUKSES' %}
-                            <span class="badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold">Success</span>
+                            <span class="badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold">Sukses</span>
                         {% elif baris.status == 'SKIP' %}
-                            <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">Skipped</span>
+                            <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">Dilewati</span>
                         {% else %}
-                            <span class="badge badge-soft-danger px-3 py-1.5 rounded-pill fw-bold">Failed</span>
+                            <span class="badge badge-soft-danger px-3 py-1.5 rounded-pill fw-bold">Gagal</span>
                         {% endif %}
                     </td>
 
@@ -245,29 +302,45 @@
                         {{ baris.author if baris.author else '-' }}
                     </td>
 
-                        <td class="text-center">
+                    <td class="small text-muted fw-medium text-break" style="max-width: 140px;">
+                        {{ baris.subject if baris.subject else '-' }}
+                    </td>
 
-                            {% if baris.status == 'SUKSES' or baris.status == 'SKIP' %}
+                    <td class="small text-muted fw-medium text-break" style="max-width: 140px;">
+                        {{ baris.keywords if baris.keywords else '-' }}
+                    </td>
 
+                    <td class="text-center" style="white-space: nowrap; width: 120px; min-width: 120px;">
+
+                        {% if baris.status == 'SUKSES' or baris.status == 'SKIP' %}
+
+                        <div class="action-btn-group">
+                            <!-- Button 1: Buka di Tab Baru (Mata) -->
                             <a href="{{ url_for('folder.lihat_pdf', filename=baris.document_key) }}"
                                target="_blank"
-                               class="btn btn-sm btn-outline-primary">
-
+                               class="btn btn-outline-primary action-btn-item shadow-sm"
+                               title="Buka Dokumen di Tab Baru">
                                 <i class="bi bi-eye"></i>
-
                             </a>
 
-                            {% else %}
+                            <!-- Button 2: Unduh Dokumen -->
+                            <a href="{{ url_for('folder.lihat_pdf', filename=baris.document_key) }}"
+                               download
+                               class="btn btn-outline-success action-btn-item shadow-sm"
+                               title="Unduh File PDF">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
 
-                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                        {% else %}
 
-                                <i class="bi bi-eye-slash"></i>
+                        <button class="btn btn-outline-secondary action-btn-item" disabled>
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
 
-                            </button>
+                        {% endif %}
 
-                            {% endif %}
-
-                        </td>
+                    </td>
 
                     </tr>
 
@@ -276,7 +349,7 @@
                     <tr>
                         <td colspan="12" class="text-center py-5 text-muted">
                             <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
-                            No documents found.
+                            Tidak ada dokumen ditemukan.
                         </td>
                     </tr>
 
@@ -288,77 +361,170 @@
 
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
 
-            <div class="text-muted small">
-                {% set start_item = (page - 1) * per_page + 1 %}
-                {% set end_item = [page * per_page, total_data] | min %}
-                {% if total_data > 0 %}
-                Showing {{ start_item }}–{{ end_item }} of {{ total_data }} documents
-                {% else %}
-                No documents found
-                {% endif %}
-                {% if current_q %} for "<strong>{{ current_q }}</strong>"{% endif %}
-                {% if current_status %} | Status: <strong>{{ current_status }}</strong>{% endif %}
-                {% if current_period %} | Range: <strong>{{ current_period_label }}</strong>{% endif %}
+            <!-- Left: Info & Items per page selector -->
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="text-muted small">
+                    {% set start_item = (page - 1) * per_page + 1 %}
+                    {% set end_item = [page * per_page, total_data] | min %}
+                    {% if total_data > 0 %}
+                    Menampilkan <strong>{{ start_item }}–{{ end_item }}</strong> dari <strong>{{ total_data }}</strong> dokumen
+                    {% else %}
+                    Tidak ada dokumen ditemukan
+                    {% endif %}
+                    {% if current_q %} for "<strong>{{ current_q }}</strong>"{% endif %}
+                    {% if current_status %} | Status: <strong>{{ current_status }}</strong>{% endif %}
+                    {% if current_period %} | Range: <strong>{{ current_period_label }}</strong>{% endif %}
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small text-nowrap">Tampilkan:</span>
+                    <select class="form-select form-select-sm shadow-none" style="width: auto;" onchange="location.href=this.value;">
+                        {% for opt_pp in [10, 25, 50, 100, 250] %}
+                        <option value="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=1, per_page=opt_pp) }}" {% if per_page == opt_pp %}selected{% endif %}>
+                            {{ opt_pp }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <span class="text-muted small text-nowrap">per hal</span>
+                </div>
             </div>
 
-            <nav>
+            <!-- Right: Dynamic Pagination & Quick Jump -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
 
-                <ul class="pagination pagination-sm mb-0">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
 
-                    <!-- Prev Button -->
-                    <li class="page-item{% if page <= 1 %} disabled{% endif %}">
-                        <a class="page-link"
-                           href="{% if page > 1 %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page-1) }}{% else %}#{% endif %}">
-                            <i class="bi bi-chevron-left"></i> Prev
-                        </a>
-                    </li>
+                        <!-- First Page Button (<<) -->
+                        <li class="page-item{% if page <= 1 %} disabled{% endif %}">
+                            <a class="page-link"
+                               href="{% if page > 1 %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=1, per_page=per_page) }}{% else %}#{% endif %}"
+                               title="Halaman Pertama">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
 
-                    <!-- Page Numbers -->
-                    {% set start_page = [1, page - 2] | max %}
-                    {% set end_page = [total_pages, page + 2] | min %}
+                        <!-- Prev Button (<) -->
+                        <li class="page-item{% if page <= 1 %} disabled{% endif %}">
+                            <a class="page-link"
+                               href="{% if page > 1 %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page-1, per_page=per_page) }}{% else %}#{% endif %}"
+                               title="Halaman Sebelumnya">
+                                <i class="bi bi-chevron-left"></i> Prev
+                            </a>
+                        </li>
 
-                    {% if start_page > 1 %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=1) }}">1</a>
-                    </li>
-                    {% if start_page > 2 %}
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                    {% endif %}
-                    {% endif %}
+                        <!-- Page Numbers with Ellipsis -->
+                        {% set start_page = [1, page - 2] | max %}
+                        {% set end_page = [total_pages, page + 2] | min %}
 
-                    {% for p in range(start_page, end_page + 1) %}
-                    <li class="page-item{% if p == page %} active{% endif %}">
-                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=p) }}">{{ p }}</a>
-                    </li>
-                    {% endfor %}
+                        {% if start_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=1, per_page=per_page) }}">1</a>
+                        </li>
+                        {% if start_page > 2 %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                        {% endif %}
 
-                    {% if end_page < total_pages %}
-                    {% if end_page < total_pages - 1 %}
-                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                    {% endif %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=total_pages) }}">{{ total_pages }}</a>
-                    </li>
-                    {% endif %}
+                        {% for p in range(start_page, end_page + 1) %}
+                        <li class="page-item{% if p == page %} active{% endif %}">
+                            <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=p, per_page=per_page) }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
 
-                    <!-- Next Button -->
-                    <li class="page-item{% if page >= total_pages %} disabled{% endif %}">
-                        <a class="page-link"
-                           href="{% if page < total_pages %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page+1) }}{% else %}#{% endif %}">
-                            Next <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
+                        {% if end_page < total_pages %}
+                        {% if end_page < total_pages - 1 %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=total_pages, per_page=per_page) }}">{{ total_pages }}</a>
+                        </li>
+                        {% endif %}
 
-                </ul>
+                        <!-- Next Button (>) -->
+                        <li class="page-item{% if page >= total_pages %} disabled{% endif %}">
+                            <a class="page-link"
+                               href="{% if page < total_pages %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=page+1, per_page=per_page) }}{% else %}#{% endif %}"
+                               title="Halaman Berikutnya">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
 
-            </nav>
+                        <!-- Last Page Button (>>) -->
+                        <li class="page-item{% if page >= total_pages %} disabled{% endif %}">
+                            <a class="page-link"
+                               href="{% if page < total_pages %}{{ url_for('dashboard.documents', q=current_q, status=current_status, period=current_period, month=current_month, year=current_year, page=total_pages, per_page=per_page) }}{% else %}#{% endif %}"
+                               title="Halaman Terakhir ({{ total_pages }})">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+
+                <!-- Quick Jump Form ("Ke Halaman") -->
+                <form method="GET" action="{{ url_for('dashboard.documents') }}" class="d-flex align-items-center gap-1.5 ms-1">
+                    {% if current_q %}<input type="hidden" name="q" value="{{ current_q }}">{% endif %}
+                    {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}">{% endif %}
+                    {% if current_period %}<input type="hidden" name="period" value="{{ current_period }}">{% endif %}
+                    {% if current_month %}<input type="hidden" name="month" value="{{ current_month }}">{% endif %}
+                    {% if current_year %}<input type="hidden" name="year" value="{{ current_year }}">{% endif %}
+                    <input type="hidden" name="per_page" value="{{ per_page }}">
+                    
+                    <span class="text-muted small text-nowrap ms-1">Ke hal:</span>
+                    <input type="number"
+                           name="page"
+                           min="1"
+                           max="{{ total_pages }}"
+                           value="{{ page }}"
+                           class="form-control form-control-sm text-center shadow-none"
+                           style="width: 58px;"
+                           required>
+                    <button type="submit" class="btn btn-sm btn-outline-primary px-2" title="Lompat ke halaman">
+                        Go
+                    </button>
+                </form>
+
+            </div>
 
         </div>
 
     </div>
 
+</div>
+
+<!-- QUICK PDF VIEWER MODAL -->
+<div class="modal fade" id="quickPdfModal" tabindex="-1" aria-labelledby="quickPdfModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl pdf-viewer-modal-dialog">
+        <div class="modal-content pdf-viewer-modal-content">
+            <div class="modal-header border-bottom py-3 px-4" style="background: #f8fafc;">
+                <div class="d-flex align-items-center gap-2 text-truncate me-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-dark text-truncate mb-0" id="quickPdfModalTitle">
+                        Pratinjau Dokumen PDF
+                    </h6>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a id="quickPdfNewTabBtn" href="#" target="_blank" class="btn btn-sm btn-outline-secondary rounded-3 d-flex align-items-center gap-1" title="Buka Dokumen Penuh di Tab Baru">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        <span class="d-none d-sm-inline">Tab Baru</span>
+                    </a>
+                    <a id="quickPdfDownloadBtn" href="#" download class="btn btn-sm btn-outline-primary rounded-3 d-flex align-items-center gap-1" title="Unduh File PDF">
+                        <i class="bi bi-download"></i>
+                        <span class="d-none d-sm-inline">Unduh</span>
+                    </a>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0" style="background: #0f172a;">
+                <iframe id="quickPdfIframe" class="pdf-viewer-iframe" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

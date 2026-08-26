@@ -8,7 +8,7 @@ SETTINGS_FILE_PATH = os.path.join(BASE_DIR, "config", "user_settings.json")
 DEFAULT_SETTINGS = {
     "tesseract_path": TESSERACT_CMD,
     "ocr_language": "ind+eng",
-    "dpi_render": 200,
+    "dpi_render": 150,
     "max_retry": 5,
     "generate_searchable_pdf": True,
     "input_dir": INPUT_DEFAULT,

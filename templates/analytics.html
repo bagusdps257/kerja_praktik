@@ -10,10 +10,10 @@
 
         <div>
             <h1 class="page-title mb-1">
-                <i class="bi bi-bar-chart-line me-2" style="color:#6366f1;"></i>Analytics Overview
+                <i class="bi bi-bar-chart-line me-2" style="color:#0284c7;"></i>Ringkasan Analitik
             </h1>
             <p class="page-subtitle mb-0">
-                Operational insights, OCR performance trends, and storage utilization.
+                Wawasan operasional, tren performa OCR, dan penggunaan penyimpanan.
             </p>
         </div>
 
@@ -25,34 +25,34 @@
 
                 <!-- Time Period Dropdown -->
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle analytics-period-btn" type="button"
+                    <button class="btn btn-filter-dropdown dropdown-toggle" type="button"
                             data-bs-toggle="dropdown" aria-expanded="false" id="periodDropdownBtn">
-                        <i class="bi bi-calendar3 me-1"></i>
+                        <i class="bi bi-calendar3 me-1 text-primary"></i>
                         <span id="periodLabel">{{ current_period_label if current_period_label else 'All Time' }}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end analytics-dropdown">
                         <li><a class="dropdown-item{% if not current_period %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='') }}">
-                            <i class="bi bi-clock-history me-2"></i>All Time
+                            <i class="bi bi-clock-history me-2"></i>Semua Waktu
                         </a></li>
                         <li><a class="dropdown-item{% if current_period == 'today' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='today') }}">
-                            <i class="bi bi-calendar-day me-2"></i>Today
+                            <i class="bi bi-calendar-day me-2"></i>Hari Ini
                         </a></li>
                         <li><a class="dropdown-item{% if current_period == '7d' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='7d') }}">
-                            <i class="bi bi-calendar-week me-2"></i>Last 7 Days
+                            <i class="bi bi-calendar-week me-2"></i>7 Hari Terakhir
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item{% if current_period == 'month' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='month') }}">
-                            <i class="bi bi-calendar-month me-2"></i>Select Month
+                            <i class="bi bi-calendar-month me-2"></i>Pilih Bulan
                         </a></li>
                         <li><a class="dropdown-item{% if current_period == 'year' %} active{% endif %}" href="{{ url_for('dashboard.analytics', period='year') }}">
-                            <i class="bi bi-calendar-range me-2"></i>Select Year
+                            <i class="bi bi-calendar-range me-2"></i>Pilih Tahun
                         </a></li>
                     </ul>
                 </div>
 
                 <!-- Dynamic Month Selector -->
                 {% if current_period == 'month' %}
-                <select name="month" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                <select name="month" class="form-select shadow-sm border-primary" style="width: auto; padding: 8px 14px; font-size: 0.88rem; border-radius: 10px;" onchange="this.form.submit()">
                     {% set months = [
                         ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
                         ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
@@ -66,7 +66,7 @@
 
                 <!-- Dynamic Year Selector -->
                 {% if current_period == 'month' or current_period == 'year' %}
-                <select name="year" class="form-select form-select-sm shadow-sm border-primary" style="width: auto;" onchange="this.form.submit()">
+                <select name="year" class="form-select shadow-sm border-primary" style="width: auto; padding: 8px 14px; font-size: 0.88rem; border-radius: 10px;" onchange="this.form.submit()">
                     {% for y in available_years %}
                     <option value="{{ y }}" {% if current_year|string == y|string %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
@@ -75,10 +75,10 @@
 
             </form>
 
-            <a href="/export_excel?period={{ current_period }}&month={{ current_month }}&year={{ current_year }}" class="btn btn-primary btn-sm analytics-export-btn d-flex align-items-center gap-1">
-                <i class="bi bi-file-earmark-excel me-1"></i>
-                Export Excel
-            </a>
+            <button onclick="window.print()" class="btn btn-gradient-export d-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold text-nowrap" style="font-size: 0.88rem;">
+                <i class="bi bi-file-earmark-pdf me-2 fs-6"></i>
+                <span>Ekspor PDF</span>
+            </button>
 
         </div>
 
@@ -92,7 +92,7 @@
         <div class="analytics-card h-100 analytics-card-hover">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Total Files</div>
+                    <div class="analytics-card-label">Total File</div>
                     <div class="analytics-card-value">{{ analytics.total_files }}</div>
                 </div>
                 <div class="analytics-card-icon analytics-icon-indigo">
@@ -101,9 +101,9 @@
             </div>
             <div class="analytics-card-footer">
                 <i class="bi bi-check-circle-fill me-1 text-success"></i>
-                <span class="text-muted">{{ analytics.success_files }} successful</span>
+                <span class="text-muted">{{ analytics.success_files }} berhasil</span>
                 <span class="analytics-card-divider">·</span>
-                <span class="text-muted">{{ analytics.skipped_files }} skipped</span>
+                <span class="text-muted">{{ analytics.skipped_files }} dilewati</span>
             </div>
         </div>
     </div>
@@ -112,7 +112,7 @@
         <div class="analytics-card h-100 analytics-card-hover">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Success Rate</div>
+                    <div class="analytics-card-label">Tingkat Sukses</div>
                     <div class="analytics-card-value analytics-value-success">{{ analytics.success_rate }}%</div>
                 </div>
                 <div class="analytics-card-icon analytics-icon-green">
@@ -121,7 +121,7 @@
             </div>
             <div class="analytics-card-footer">
                 <i class="bi bi-x-circle-fill me-1 text-danger"></i>
-                <span class="text-muted">{{ analytics.failed_files }} failed</span>
+                <span class="text-muted">{{ analytics.failed_files }} gagal</span>
             </div>
             <!-- Mini sparkline bar -->
             <div class="analytics-sparkline mt-2">
@@ -134,7 +134,7 @@
         <div class="analytics-card h-100 analytics-card-hover">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Avg Processing Time</div>
+                    <div class="analytics-card-label">Rata-rata Waktu Proses</div>
                     <div class="analytics-card-value analytics-value-sky">{{ analytics.avg_processing_time }}s</div>
                 </div>
                 <div class="analytics-card-icon analytics-icon-sky">
@@ -143,7 +143,7 @@
             </div>
             <div class="analytics-card-footer">
                 <i class="bi bi-clock-history me-1" style="color:#64748b;"></i>
-                <span class="text-muted">Per document average</span>
+                <span class="text-muted">Rata-rata per dokumen</span>
             </div>
         </div>
     </div>
@@ -159,19 +159,19 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="analytics-section-title mb-1">
-                        <i class="bi bi-activity me-2" style="color:#15803d;"></i>Daily Processing Performance
+                        <i class="bi bi-activity me-2" style="color:#15803d;"></i>Performa Pemrosesan Harian
                     </h5>
-                    <small class="text-muted">Daily breakdown of successful and failed OCR documents</small>
+                    <small class="text-muted">Rincian harian dokumen OCR yang berhasil dan gagal</small>
                 </div>
                 {% if analytics.daily_trend %}
                     {% set total_succ = analytics.daily_trend|map(attribute='success')|sum %}
                     {% set total_fail = analytics.daily_trend|map(attribute='failed')|sum %}
                     <div class="d-flex gap-2">
                         <span class="analytics-badge analytics-badge-success">
-                            <i class="bi bi-check-circle me-1"></i>{{ total_succ }} Success
+                            <i class="bi bi-check-circle me-1"></i>{{ total_succ }} Sukses
                         </span>
                         <span class="analytics-badge analytics-badge-danger">
-                            <i class="bi bi-x-circle me-1"></i>{{ total_fail }} Failed
+                            <i class="bi bi-x-circle me-1"></i>{{ total_fail }} Gagal
                         </span>
                     </div>
                 {% endif %}
@@ -188,9 +188,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="analytics-section-title mb-1">
-                        <i class="bi bi-bar-chart me-2" style="color:#2563eb;"></i>Volume per Day
+                        <i class="bi bi-bar-chart me-2" style="color:#0284c7;"></i>Volume per Hari
                     </h5>
-                    <small class="text-muted">Documents processed daily</small>
+                    <small class="text-muted">Dokumen diproses per hari</small>
                 </div>
                 {% if analytics.daily_volume %}
                     {% set total_vol = analytics.daily_volume|map(attribute='jumlah')|sum %}
@@ -215,7 +215,7 @@
         <div class="analytics-card h-100">
             <h5 class="analytics-section-title mb-4">
                 <i class="bi bi-hdd-stack me-2 text-primary"></i>
-                Storage Usage
+                Penggunaan Penyimpanan
             </h5>
 
             <!-- Donut visualization -->
@@ -224,7 +224,7 @@
                     <svg viewBox="0 0 120 120" class="analytics-donut-svg">
                         <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="12"/>
                         <circle cx="60" cy="60" r="50" fill="none"
-                                stroke="{% if analytics.storage_used_percent > 80 %}#dc2626{% elif analytics.storage_used_percent > 50 %}#f59e0b{% else %}#6366f1{% endif %}"
+                                stroke="{% if analytics.storage_used_percent > 80 %}#dc2626{% elif analytics.storage_used_percent > 50 %}#f59e0b{% else %}#0284c7{% endif %}"
                                 stroke-width="12"
                                 stroke-dasharray="{{ (analytics.storage_used_percent / 100) * 314.16 }} {{ 314.16 - (analytics.storage_used_percent / 100) * 314.16 }}"
                                 stroke-dashoffset="78.54"
@@ -233,14 +233,14 @@
                     </svg>
                     <div class="analytics-donut-center">
                         <div class="analytics-donut-value">{{ analytics.storage_used_percent }}%</div>
-                        <div class="analytics-donut-label">Used</div>
+                        <div class="analytics-donut-label">Terpakai</div>
                     </div>
                 </div>
             </div>
 
             <div class="text-center mb-3">
                 <div class="analytics-metric">{{ analytics.storage_used_gb }} GB</div>
-                <div class="text-muted small">of {{ analytics.storage_total_gb }} GB total disk capacity</div>
+                <div class="text-muted small">dari total kapasitas disk {{ analytics.storage_total_gb }} GB</div>
             </div>
 
             <div class="progress analytics-progress mb-2">
@@ -249,19 +249,19 @@
             </div>
 
             <div class="d-flex justify-content-between small text-muted mb-3">
-                <span><i class="bi bi-circle-fill me-1" style="font-size:6px;color:#6366f1;vertical-align:middle;"></i>{{ analytics.storage_used_percent }}% Used</span>
-                <span>{{ analytics.storage_free_formatted }} Free</span>
+                <span><i class="bi bi-circle-fill me-1" style="font-size:6px;color:#0284c7;vertical-align:middle;"></i>{{ analytics.storage_used_percent }}% Terpakai</span>
+                <span>{{ analytics.storage_free_formatted }} Tersisa</span>
             </div>
 
             <hr class="analytics-divider">
 
             <div class="small fw-semibold text-muted mb-3 text-uppercase" style="letter-spacing:.06em;font-size:.72rem;">
-                Storage Breakdown
+                Rincian Penyimpanan
             </div>
 
             <div class="analytics-storage-item mb-2">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="analytics-storage-dot" style="background:#6366f1;"></span>
+                    <span class="analytics-storage-dot" style="background:#0284c7;"></span>
                     <span class="small">PDF Output Folder</span>
                 </div>
                 <span class="small fw-semibold">{{ analytics.output_size_formatted }}</span>
@@ -276,7 +276,7 @@
             <div class="analytics-storage-item">
                 <div class="d-flex align-items-center gap-2">
                     <span class="analytics-storage-dot" style="background:#10b981;"></span>
-                    <span class="small">Free Drive Space</span>
+                    <span class="small">Sisa Ruang Drive</span>
                 </div>
                 <span class="small fw-semibold">{{ analytics.storage_free_formatted }}</span>
             </div>
@@ -290,9 +290,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="analytics-section-title mb-1">
-                        <i class="bi bi-people-fill me-2" style="color:#6366f1;"></i>Most Active Users
+                        <i class="bi bi-people-fill me-2" style="color:#0284c7;"></i>Pengguna Teraktif
                     </h5>
-                    <small class="text-muted">Top contributors by documents processed</small>
+                    <small class="text-muted">Kontributor teratas berdasarkan dokumen yang diproses</small>
                 </div>
                 <span class="analytics-badge analytics-badge-neutral">
                     <i class="bi bi-trophy me-1"></i>Top {{ analytics.most_active_users|length }}
@@ -304,9 +304,9 @@
                     <thead>
                         <tr>
                             <th class="analytics-th" style="width:5%;">#</th>
-                            <th class="analytics-th">User</th>
-                            <th class="analytics-th text-end">Docs Processed</th>
-                            <th class="analytics-th text-end" style="width:30%;">Share</th>
+                            <th class="analytics-th">Pengguna</th>
+                            <th class="analytics-th text-end">Dokumen Diproses</th>
+                            <th class="analytics-th text-end" style="width:30%;">Persentase</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -332,7 +332,7 @@
                             </td>
                             <td class="text-end">
                                 <span class="fw-bold" style="font-size:1.05rem;">{{ user.docs }}</span>
-                                <span class="text-muted small ms-1">docs</span>
+                                <span class="text-muted small ms-1">dokumen</span>
                             </td>
                             <td class="text-end">
                                 {% set share = ((user.docs / analytics.total_files) * 100)|round(1) if analytics.total_files > 0 else 0 %}
@@ -340,7 +340,7 @@
                                     <div class="progress analytics-progress flex-grow-1" style="max-width:120px;">
                                         <div class="progress-bar analytics-progress-bar-gradient" style="width:{{ share }}%"></div>
                                     </div>
-                                    <span class="small fw-semibold" style="min-width:42px;color:#6366f1;">{{ share }}%</span>
+                                    <span class="small fw-semibold" style="min-width:42px;color:#0284c7;">{{ share }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -350,8 +350,8 @@
                         <tr>
                             <td colspan="4" class="text-center text-muted py-5">
                                 <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
-                                <div class="fw-semibold mb-1">No user data available</div>
-                                <small>User activity will appear here after OCR processing.</small>
+                                <div class="fw-semibold mb-1">Tidak ada data pengguna</div>
+                                <small>Aktivitas pengguna akan muncul di sini setelah pemrosesan OCR.</small>
                             </td>
                         </tr>
                         {% endif %}
@@ -378,15 +378,15 @@ function setPeriod(val, label) {
 
 /* ===== Chart Colors ===== */
 const COLORS = {
-    success: '#15803d',
-    successLight: 'rgba(21,128,61,0.08)',
-    successGradientStart: 'rgba(21,128,61,0.25)',
-    successGradientEnd: 'rgba(21,128,61,0.02)',
-    failed: '#dc2626',
-    primary: '#6366f1',
-    primaryLight: 'rgba(99,102,241,0.15)',
-    primaryGradientStart: 'rgba(99,102,241,0.35)',
-    primaryGradientEnd: 'rgba(99,102,241,0.05)',
+    success: '#059669',
+    successLight: 'rgba(5,150,105,0.08)',
+    successGradientStart: 'rgba(5,150,105,0.25)',
+    successGradientEnd: 'rgba(5,150,105,0.02)',
+    failed: '#e11d48',
+    primary: '#0284c7',
+    primaryLight: 'rgba(2,132,199,0.15)',
+    primaryGradientStart: 'rgba(2,132,199,0.35)',
+    primaryGradientEnd: 'rgba(2,132,199,0.05)',
     neutral: '#64748b'
 };
 
@@ -413,15 +413,15 @@ if (performanceCanvas) {
             labels: trendLabels,
             datasets: [
                 {
-                    label: 'Success',
+                    label: 'Sukses',
                     data: successData,
-                    borderColor: '#10b981',
+                    borderColor: '#059669',
                     backgroundColor: succGradient,
                     tension: 0.35,
                     fill: true,
                     borderWidth: 2.5,
                     pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#10b981',
+                    pointBorderColor: '#059669',
                     pointBorderWidth: 2.5,
                     pointRadius: 4,
                     pointHoverRadius: 7,
@@ -429,15 +429,15 @@ if (performanceCanvas) {
                     pointHoverBackgroundColor: '#ffffff'
                 },
                 {
-                    label: 'Failed',
+                    label: 'Gagal',
                     data: failedData,
-                    borderColor: '#ef4444',
+                    borderColor: '#e11d48',
                     backgroundColor: failGradient,
                     tension: 0.35,
                     fill: true,
                     borderWidth: 2.5,
                     pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#ef4444',
+                    pointBorderColor: '#e11d48',
                     pointBorderWidth: 2.5,
                     pointRadius: 4,
                     pointHoverRadius: 7,
@@ -477,7 +477,7 @@ if (performanceCanvas) {
                     displayColors: true,
                     callbacks: {
                         title: ctx => `📅 ${ctx[0].label}`,
-                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} docs`
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} dokumen`
                     }
                 }
             },
@@ -522,7 +522,7 @@ if (volumeCanvas) {
         data: {
             labels: volLabels,
             datasets: [{
-                label: 'Documents',
+                label: 'Dokumen',
                 data: volData,
                 backgroundColor: volGradient,
                 borderColor: COLORS.primary,
@@ -548,7 +548,7 @@ if (volumeCanvas) {
                     displayColors: false,
                     callbacks: {
                         title: ctx => `📅 ${ctx[0].label}`,
-                        label: ctx => `${ctx.parsed.y} documents processed`
+                        label: ctx => `${ctx.parsed.y} dokumen diproses`
                     }
                 }
             },

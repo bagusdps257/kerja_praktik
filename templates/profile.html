@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">
-                <i class="bi bi-person-circle me-2" style="color:#6366f1;"></i>Profil Pengguna
+                <i class="bi bi-person-circle me-2" style="color:#0284c7;"></i>Profil Pengguna
             </h1>
             <p class="page-subtitle mb-0">
                 Kelola informasi akun dan pengaturan keamanan kata sandi Anda.
@@ -24,59 +24,55 @@
         {% include 'partials/alerts.html' %}
 
         <!-- USER ACCOUNT INFO CARD -->
-        <div class="card border-0 shadow-sm bg-white mb-4" style="border-radius: 20px;">
-            <div class="card-body p-4">
-                <h3 class="card-title mb-4 fs-5 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="bi bi-person-vcard text-primary fs-4"></i> Informasi Akun
-                </h3>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-3 bg-light border border-light-subtle">
-                            <label class="text-secondary small d-block mb-1 fw-medium">Username</label>
-                            <span class="fs-6 fw-semibold text-dark d-block text-truncate" id="profile-username" title="{{ current_user.username }}">{{ current_user.username }}</span>
-                        </div>
+        <div class="analytics-card mb-4 p-4" style="border-radius: 16px;">
+            <h3 class="card-title mb-4 fs-5 fw-bold text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-person-vcard text-primary fs-4"></i> Informasi Akun
+            </h3>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <label class="text-muted small d-block mb-1 fw-medium">Username</label>
+                        <span class="fs-6 fw-bold text-dark d-block text-truncate" id="profile-username" title="{{ current_user.username }}">{{ current_user.username }}</span>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-3 bg-light border border-light-subtle">
-                            <label class="text-secondary small d-block mb-1 fw-medium">Tanggal Terdaftar</label>
-                            <span class="fs-6 fw-semibold text-dark d-block" id="profile-created-at">{{ current_user.created_at or '-' }}</span>
-                        </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <label class="text-muted small d-block mb-1 fw-medium">Tanggal Terdaftar</label>
+                        <span class="fs-6 fw-bold text-dark d-block" id="profile-created-at">{{ current_user.formatted_created_at or (current_user.created_at | format_datetime) }}</span>
                     </div>
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-3 bg-light border border-light-subtle">
-                            <label class="text-secondary small d-block mb-1 fw-medium">Login Terakhir</label>
-                            <span class="fs-6 fw-semibold text-dark d-block" id="profile-last-login">{{ current_user.last_login or '-' }}</span>
-                        </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <label class="text-muted small d-block mb-1 fw-medium">Login Terakhir</label>
+                        <span class="fs-6 fw-bold text-dark d-block" id="profile-last-login">{{ current_user.formatted_last_login or (current_user.last_login | format_datetime) }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- PASSWORD CHANGE FORM CARD -->
-        <div class="card border-0 shadow-sm bg-white" style="border-radius: 20px;">
-            <div class="card-body p-4">
-                <h4 class="card-title mb-4 fs-5 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="bi bi-shield-lock text-primary fs-4"></i> Ubah Password
-                </h4>
-                <form action="{{ url_for('auth.change_password') }}" method="POST" id="profile-change-password-form">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="mb-3">
-                        <label for="old_password" class="form-label text-secondary small fw-medium">Password Lama</label>
-                        <input type="password" class="form-control bg-light border border-light-subtle text-dark" id="old_password" name="old_password" placeholder="Masukkan password lama" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label text-secondary small fw-medium">Password Baru (minimal 6 karakter)</label>
-                        <input type="password" class="form-control bg-light border border-light-subtle text-dark" id="new_password" name="new_password" minlength="6" placeholder="Masukkan password baru" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label text-secondary small fw-medium">Konfirmasi Password Baru</label>
-                        <input type="password" class="form-control bg-light border border-light-subtle text-dark" id="confirm_password" name="confirm_password" placeholder="Ulangi password baru" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold mt-3 py-2-5 rounded-3">
-                        <i class="bi bi-key me-1"></i> Simpan Password
-                    </button>
-                </form>
-            </div>
+        <div class="analytics-card p-4" style="border-radius: 16px;">
+            <h4 class="card-title mb-4 fs-5 fw-bold text-dark d-flex align-items-center gap-2">
+                <i class="bi bi-shield-lock text-primary fs-4"></i> Ubah Password
+            </h4>
+            <form action="{{ url_for('auth.change_password') }}" method="POST" id="profile-change-password-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="mb-3">
+                    <label for="old_password" class="form-label text-muted small fw-semibold">Password Lama</label>
+                    <input type="password" class="form-control" id="old_password" name="old_password" placeholder="Masukkan password lama" required>
+                </div>
+                <div class="mb-3">
+                    <label for="new_password" class="form-label text-muted small fw-semibold">Password Baru (minimal 6 karakter)</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" minlength="6" placeholder="Masukkan password baru" required>
+                </div>
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label text-muted small fw-semibold">Konfirmasi Password Baru</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Ulangi password baru" required>
+                </div>
+                <button type="submit" class="btn btn-gradient-primary w-100 fw-semibold mt-3 py-2.5 rounded-3">
+                    <i class="bi bi-key me-1"></i> Simpan Password
+                </button>
+            </form>
         </div>
 
     </div>

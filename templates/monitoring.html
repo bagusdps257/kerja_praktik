@@ -8,15 +8,15 @@
 
     <div>
         <h1 class="page-title mb-1">
-            <i class="bi bi-activity me-2" style="color:#6366f1;"></i>OCR Monitoring
+            <i class="bi bi-activity me-2" style="color:#0284c7;"></i>OCR Monitoring
         </h1>
         <p class="page-subtitle mb-0">
-            Real-time OCR engine status, processing queue, and live terminal logs.
+            Antrean pemrosesan dan log terminal.
         </p>
     </div>
 
     <div class="text-muted small fw-medium" id="lastUpdated">
-        <i class="bi bi-clock me-1"></i>Last updated: --:--:--
+        <i class="bi bi-clock me-1"></i>Terakhir diperbarui: --:--:--
     </div>
 
 </div>
@@ -30,7 +30,7 @@
 
         <div class="terminal-card h-100">
 
-            <div class="terminal-header">
+            <div class="terminal-header d-flex justify-content-between align-items-center">
 
                 <div class="d-flex align-items-center">
 
@@ -41,13 +41,13 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2 ms-2">
-                        <i class="bi bi-terminal-fill me-1" style="color: #6366f1;"></i>
+                        <i class="bi bi-terminal-fill me-1" style="color: #0284c7;"></i>
                         <span class="fw-bold text-light">ocr_worker_node_alpha.log</span>
                     </div>
 
                 </div>
 
-                <span class="terminal-status badge badge-soft-secondary px-3 py-1 rounded-pill" style="cursor: pointer; user-select: none;" id="autoScrollToggle" onclick="toggleAutoScroll()">
+                <span class="terminal-status badge badge-soft-secondary px-3 py-1.5 rounded-pill" style="cursor: pointer; user-select: none;" id="autoScrollToggle" onclick="toggleAutoScroll()" title="Klik untuk mengaktifkan/menonaktifkan auto-scroll">
                     Auto-scroll: <strong id="autoScrollStatus" class="text-primary">ON</strong>
                 </span>
 
@@ -57,9 +57,9 @@
 
                 {% if live_logs %}
 
-                    {% for log in live_logs %}
+                    {% for log in live_logs|reverse %}
                         <div class="terminal-line">
-                            <span class="terminal-time">{{ loop.index }}</span>
+                            <span class="terminal-time">{{ loop.revindex }}</span>
                             <span class="terminal-text">{{ log }}</span>
                         </div>
                     {% endfor %}
@@ -86,8 +86,8 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
 
                 <h5 class="analytics-section-title mb-0">
-                    <i class="bi bi-list-task me-2" style="color:#6366f1;"></i>
-                    Active Queue
+                    <i class="bi bi-list-task me-2" style="color:#0284c7;"></i>
+                    Antrean Aktif
                 </h5>
 
                 <span class="badge badge-soft-primary px-3 py-1.5 rounded-pill fw-bold" id="activeTaskBadge">{{ active_task_count }} Tasks</span>
@@ -98,23 +98,25 @@
 
                 {% if queue_tasks %}
                     {% for task in queue_tasks %}
-                        <div class="queue-item {% if task.status == 'PROCESSING' %}processing{% endif %} p-3 rounded-3 mb-2 border" style="background: #f8fafc;">
+                        <div class="queue-item {% if task.status == 'PROCESSING' %}processing{% endif %} p-3 rounded-3 mb-2 border">
 
                             <div class="d-flex justify-content-between align-items-start">
 
                                 <div>
-                                    <div class="fw-semibold text-dark">{{ task.file_name }}</div>
+                                    <div class="{% if task.status == 'PROCESSING' %}fw-bold text-primary{% else %}fw-semibold text-dark{% endif %}" {% if task.status == 'PROCESSING' %}style="color: #0284c7 !important;"{% endif %}>
+                                        {% if task.status == 'PROCESSING' %}<i class="bi bi-gear-wide-connected me-1.5 spin-slow"></i>{% endif %}{{ task.file_name }}
+                                    </div>
                                     <div class="text-muted small">{{ task.worker }}</div>
                                 </div>
 
-                                <span class="badge {% if task.status == 'PROCESSING' %}badge-soft-primary{% elif task.status == 'QUEUED' %}badge-soft-secondary{% elif task.status == 'FAILED' %}badge-soft-danger{% else %}badge-soft-success{% endif %} px-2.5 py-1 rounded-pill fw-bold">
-                                    {{ task.status }}
+                                <span class="badge {% if task.status == 'PROCESSING' %}badge-soft-primary{% elif task.status == 'QUEUED' %}badge-soft-secondary{% elif task.status == 'FAILED' %}badge-soft-danger{% else %}badge-soft-success{% endif %} px-3 py-1.5 rounded-pill fw-bold">
+                                    {% if task.status == 'PROCESSING' %}<span class="status-pulse-dot me-1" style="background:#0284c7;"></span>{% endif %}{{ task.status }}
                                 </span>
 
                             </div>
 
                             {% if task.status == 'PROCESSING' %}
-                                <div class="small text-muted mt-2">Page {{ task.current_page }} of {{ task.total_pages }}</div>
+                                <div class="small text-muted mt-2">File {{ task.current_page }} of {{ task.total_pages }}</div>
 
                                 <div class="progress analytics-progress mt-2" style="height: 6px;">
                                     <div class="progress-bar analytics-progress-bar-gradient" style="width:{{ task.progress }}%"></div>
@@ -128,7 +130,7 @@
                 {% else %}
                     <div class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
-                        <div class="fw-semibold">Queue kosong. Tidak ada task aktif.</div>
+                        <div class="fw-semibold">Antrean kosong. Tidak ada proses berjalan.</div>
                     </div>
                 {% endif %}
 
@@ -141,7 +143,7 @@
                         onclick="togglePauseQueue()">
 
                     <i class="bi {% if queue_paused %}bi-play-circle{% else %}bi-pause-circle{% endif %} me-2"></i>
-                    <span id="pauseQueueText">{% if queue_paused %}Resume Queue{% else %}Pause Queue{% endif %}</span>
+                    <span id="pauseQueueText">{% if queue_paused %}Lanjutkan Antrean{% else %}Jeda Antrean{% endif %}</span>
 
                 </button>
 
@@ -161,6 +163,7 @@ function toggleAutoScroll() {
     const el = document.getElementById('autoScrollStatus');
     if (el) {
         el.textContent = autoScroll ? 'ON' : 'OFF';
+        el.className = autoScroll ? 'text-primary' : 'text-muted';
     }
 }
 
@@ -197,12 +200,12 @@ function updatePauseButtonState(isPaused) {
         btn.className = 'btn btn-warning w-100 rounded-3 py-2 fw-semibold';
         const icon = btn.querySelector('i');
         if (icon) icon.className = 'bi bi-play-circle me-2';
-        text.textContent = 'Resume Queue';
+        text.textContent = 'Lanjutkan Antrean';
     } else {
         btn.className = 'btn btn-outline-secondary w-100 rounded-3 py-2 fw-semibold';
         const icon = btn.querySelector('i');
         if (icon) icon.className = 'bi bi-pause-circle me-2';
-        text.textContent = 'Pause Queue';
+        text.textContent = 'Jeda Antrean';
     }
 }
 
@@ -291,10 +294,12 @@ function updateMonitoringUI(data) {
     if (logBox && data.live_logs) {
         logBox.innerHTML = '';
         if (data.live_logs.length > 0) {
-            data.live_logs.forEach((log, index) => {
+            data.live_logs.slice().reverse().forEach((log, index) => {
                 const line = document.createElement('div');
                 line.className = 'terminal-line';
-                line.innerHTML = `<span class="terminal-time">${index + 1}</span><span class="terminal-text">${escapeHtml(log)}</span>`;
+                // Calculate correct index for display (newest is highest number)
+                const displayIndex = data.live_logs.length - index;
+                line.innerHTML = `<span class="terminal-time">${displayIndex}</span><span class="terminal-text">${escapeHtml(log)}</span>`;
                 logBox.appendChild(line);
             });
         } else {
@@ -302,7 +307,7 @@ function updateMonitoringUI(data) {
         }
 
         if (autoScroll) {
-            logBox.scrollTop = logBox.scrollHeight;
+            logBox.scrollTop = 0; // Scroll to top since newest logs are at the top
         }
     }
 
@@ -314,7 +319,7 @@ function updateMonitoringUI(data) {
             queueContainer.innerHTML = `
                 <div class="text-center py-5 text-muted">
                     <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
-                    <div class="fw-semibold">Queue kosong. Tidak ada task aktif.</div>
+                    <div class="fw-semibold">Antrean kosong. Tidak ada proses berjalan.</div>
                 </div>
             `;
         } else {
@@ -322,18 +327,24 @@ function updateMonitoringUI(data) {
                 const item = document.createElement('div');
                 const isProc = task.status === 'PROCESSING';
                 item.className = `queue-item ${isProc ? 'processing' : ''} p-3 rounded-3 mb-2 border`;
-                item.style.background = '#f8fafc';
 
                 let badgeClass = 'badge-soft-secondary';
-                if (task.status === 'PROCESSING') badgeClass = 'badge-soft-primary';
-                else if (task.status === 'QUEUED') badgeClass = 'badge-soft-secondary';
-                else if (task.status === 'FAILED') badgeClass = 'badge-soft-danger';
-                else if (task.status === 'COMPLETED') badgeClass = 'badge-soft-success';
+                let pulseDot = '';
+                if (isProc) {
+                    badgeClass = 'badge-soft-primary';
+                    pulseDot = '<span class="status-pulse-dot me-1" style="background:#0284c7;"></span>';
+                } else if (task.status === 'QUEUED') {
+                    badgeClass = 'badge-soft-secondary';
+                } else if (task.status === 'FAILED') {
+                    badgeClass = 'badge-soft-danger';
+                } else if (task.status === 'COMPLETED') {
+                    badgeClass = 'badge-soft-success';
+                }
 
                 let detailHtml = '';
                 if (isProc) {
                     detailHtml = `
-                        <div class="small text-muted mt-2">Page ${task.current_page} of ${task.total_pages}</div>
+                        <div class="small text-muted mt-2">File ${task.current_page} of ${task.total_pages}</div>
                         <div class="progress analytics-progress mt-2" style="height: 6px;">
                             <div class="progress-bar analytics-progress-bar-gradient" style="width:${task.progress}%"></div>
                         </div>
@@ -342,13 +353,17 @@ function updateMonitoringUI(data) {
                     detailHtml = `<div class="small text-muted mt-2">${task.pending_files} files</div>`;
                 }
 
+                const fileNameHtml = isProc 
+                    ? `<div class="fw-bold text-primary" style="color: #0284c7 !important;"><i class="bi bi-gear-wide-connected me-1.5 spin-slow"></i>${escapeHtml(task.file_name)}</div>`
+                    : `<div class="fw-semibold text-dark">${escapeHtml(task.file_name)}</div>`;
+
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="fw-semibold text-dark">${escapeHtml(task.file_name)}</div>
+                            ${fileNameHtml}
                             <div class="text-muted small">${escapeHtml(task.worker)}</div>
                         </div>
-                        <span class="badge ${badgeClass} px-2.5 py-1 rounded-pill fw-bold">${task.status}</span>
+                        <span class="badge ${badgeClass} px-3 py-1.5 rounded-pill fw-bold">${pulseDot}${task.status}</span>
                     </div>
                     ${detailHtml}
                 `;
@@ -361,7 +376,7 @@ function updateMonitoringUI(data) {
     const lastUpd = document.getElementById('lastUpdated');
     if (lastUpd) {
         const now = new Date();
-        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Last updated: ' + now.toLocaleTimeString();
+        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Terakhir diperbarui: ' + now.toLocaleTimeString();
     }
 }
 
@@ -378,13 +393,13 @@ async function fetchMonitoringData() {
 // Initial scroll and trigger polling
 document.addEventListener('DOMContentLoaded', () => {
     const logBox = document.getElementById('logBox');
-    if (logBox && autoScroll) {
-        logBox.scrollTop = logBox.scrollHeight;
+    if (autoScroll && logBox) {
+        logBox.scrollTop = 0;
     }
     const lastUpd = document.getElementById('lastUpdated');
     if (lastUpd) {
         const now = new Date();
-        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Last updated: ' + now.toLocaleTimeString();
+        lastUpd.innerHTML = '<i class="bi bi-clock me-1"></i>Terakhir diperbarui: ' + now.toLocaleTimeString();
     }
 });
 

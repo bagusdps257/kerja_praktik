@@ -1,9 +1,26 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from models.user_model import UserModel
+from models.user_model import UserModel, User
+from models.extensions import db
+from config.settings import ALLOW_REGISTRATION
 
 auth_bp = Blueprint("auth", __name__)
 user_model = UserModel()
+
+
+def is_registration_allowed():
+    """
+    Registration is allowed if:
+    1. ALLOW_REGISTRATION is True in config/environment, OR
+    2. The database currently has 0 users (allows creating the initial administrator).
+    """
+    if ALLOW_REGISTRATION:
+        return True
+    try:
+        has_any_user = db.session.query(User.id).first() is not None
+        return not has_any_user
+    except Exception:
+        return False
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -14,10 +31,11 @@ def login():
     On POST: validate form parameters username & password, lookup user via user_model,
     verify password, log in user with remember=True, update last login timestamp,
     and redirect to 'next' URL parameter or dashboard.index.
-    Flash alert messages on invalid credentials or empty fields.
     """
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
+
+    allow_reg = is_registration_allowed()
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -25,7 +43,7 @@ def login():
 
         if not username or not password:
             flash("Username dan password wajib diisi.", "danger")
-            return render_template("login.html")
+            return render_template("login.html", allow_registration=allow_reg)
 
         user = user_model.get_by_username(username)
         if user and user.check_password(password):
@@ -40,7 +58,7 @@ def login():
         else:
             flash("Username atau password salah.", "danger")
 
-    return render_template("login.html")
+    return render_template("login.html", allow_registration=allow_reg)
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -48,13 +66,14 @@ def register():
     """
     Handle user registration.
     If user is already authenticated, redirect to dashboard.index.
-    On POST: validate username, password, and confirm_password form parameters.
-    Check fields are non-empty, passwords match, and username is unique.
-    Create user via user_model.create_user(), flash success message, and redirect to auth.login.
-    Render register.html.
+    If public registration is disabled and at least 1 user exists, block access.
     """
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
+
+    if not is_registration_allowed():
+        flash("Pendaftaran akun baru ditutup oleh administrator.", "warning")
+        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -63,6 +82,14 @@ def register():
 
         if not username or not password or not confirm_password:
             flash("Semua bidang harus diisi.", "danger")
+            return render_template("register.html")
+
+        if len(username) < 3:
+            flash("Username minimal 3 karakter.", "danger")
+            return render_template("register.html")
+
+        if len(password) < 6:
+            flash("Password minimal 6 karakter.", "danger")
             return render_template("register.html")
 
         if password != confirm_password:
@@ -75,7 +102,7 @@ def register():
 
         new_user = user_model.create_user(username, password)
         if new_user:
-            flash("Registrasi berhasil! Silakan login.", "success")
+            flash("Registrasi berhasil! Silakan login dengan akun baru Anda.", "success")
             return redirect(url_for("auth.login"))
         else:
             flash("Gagal mendaftarkan pengguna.", "danger")
@@ -86,38 +113,23 @@ def register():
 @auth_bp.route("/logout", methods=["GET"])
 @login_required
 def logout():
-    """
-    Handle user logout.
-    Call logout_user(), flash info message, and redirect to auth.login.
-    """
+    """Handle user logout."""
     logout_user()
-    flash("Anda telah keluar.", "info")
+    flash("Anda telah keluar dari sistem.", "info")
     return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/profile", methods=["GET"])
 @login_required
 def profile():
-    """
-    Render user profile page.
-    """
+    """Render user profile page."""
     return render_template("profile.html")
 
 
 @auth_bp.route("/profile/change-password", methods=["POST"])
 @login_required
 def change_password():
-    """
-    Handle password change for current user.
-    Accepts form parameters: old_password, new_password, confirm_password.
-    Validations:
-      1. current_user.check_password(old_password) -> Flash danger message if incorrect.
-      2. len(new_password) >= 6 -> Flash danger message if too short.
-      3. new_password == confirm_password -> Flash danger message if mismatch.
-    If all validations pass:
-      user_model.update_password(current_user.id, new_password)
-      flashes success message and redirects to url_for('auth.profile').
-    """
+    """Handle password change for current user."""
     old_password = request.form.get("old_password", "")
     new_password = request.form.get("new_password", "")
     confirm_password = request.form.get("confirm_password", "")
@@ -137,4 +149,3 @@ def change_password():
     user_model.update_password(current_user.id, new_password)
     flash("Password berhasil diubah.", "success")
     return redirect(url_for("auth.profile"))
-

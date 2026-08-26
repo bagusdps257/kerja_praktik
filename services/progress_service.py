@@ -97,15 +97,13 @@ def mulai(total_file):
 
 # =====================================================
 # UPDATE
-# =====================================================
-
-def update_file(nama_file):
+def update_file(nama_file, force=False):
     state = _read_state()
     state["current_file"] = nama_file
-    _write_state(state)
+    _write_state(state, force=force)
 
 
-def update_progress(jumlah_selesai):
+def update_progress(jumlah_selesai, force=True):
     state = _read_state()
     state["selesai"] = jumlah_selesai
     total = state.get("total", 0)
@@ -114,7 +112,20 @@ def update_progress(jumlah_selesai):
             state["persen"] = min(99, int(jumlah_selesai / total * 100))
         else:
             state["persen"] = 100
-    _write_state(state)
+    _write_state(state, force=force)
+
+
+def update_file_and_progress(nama_file, jumlah_selesai, force=True):
+    state = _read_state()
+    state["current_file"] = nama_file
+    state["selesai"] = jumlah_selesai
+    total = state.get("total", 0)
+    if total > 0:
+        if jumlah_selesai < total:
+            state["persen"] = min(99, int(jumlah_selesai / total * 100))
+        else:
+            state["persen"] = 100
+    _write_state(state, force=force)
 
 
 # =====================================================

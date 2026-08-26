@@ -9,10 +9,10 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h1 class="page-title mb-1">
-                <i class="bi bi-gear-wide-connected me-2" style="color:#6366f1;"></i>System Settings
+                <i class="bi bi-gear-wide-connected me-2" style="color:#0284c7;"></i>Pengaturan Sistem
             </h1>
             <p class="page-subtitle mb-0">
-                Configure OCR engine parameters and notification preferences.
+                Konfigurasi parameter mesin OCR dan preferensi notifikasi.
             </p>
         </div>
     </div>
@@ -28,19 +28,19 @@
                 <button class="nav-link settings-nav-link active" id="tab-ocr-btn"
                         data-bs-toggle="pill" data-bs-target="#tab-ocr" type="button" role="tab"
                         aria-controls="tab-ocr" aria-selected="true">
-                    <i class="bi bi-cpu me-2"></i> OCR Engine
+                    <i class="bi bi-cpu me-2"></i> Mesin OCR
                 </button>
 
                 <button class="nav-link settings-nav-link" id="tab-notification-btn"
                         data-bs-toggle="pill" data-bs-target="#tab-notification" type="button" role="tab"
                         aria-controls="tab-notification" aria-selected="false">
-                    <i class="bi bi-bell me-2"></i> Notification
+                    <i class="bi bi-bell me-2"></i> Notifikasi
                 </button>
 
                 <button class="nav-link settings-nav-link" id="tab-about-btn"
                         data-bs-toggle="pill" data-bs-target="#tab-about" type="button" role="tab"
                         aria-controls="tab-about" aria-selected="false">
-                    <i class="bi bi-info-circle me-2"></i> About System
+                    <i class="bi bi-info-circle me-2"></i> Tentang Sistem
                 </button>
 
             </div>
@@ -60,13 +60,13 @@
                     <div class="card settings-card mb-3">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-cpu fs-4 me-2" style="color:#6366f1;"></i>
-                                <h4 class="section-title mb-0">OCR Engine Settings</h4>
+                                <i class="bi bi-cpu fs-4 me-2" style="color:#0284c7;"></i>
+                                <h4 class="section-title mb-0">Pengaturan Mesin OCR</h4>
                             </div>
-                            <p class="text-muted small mb-4">Configure Tesseract binary location, rendering resolutions, and language support.</p>
+                            <p class="text-muted small mb-4">Konfigurasi lokasi binary Tesseract, resolusi render, dan dukungan bahasa.</p>
 
                             <div class="row g-3">
-                                <div class="col-12">
+                                <div class="col-12 d-none">
                                     <label class="form-label fw-semibold text-secondary">Tesseract Binary Path</label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-terminal"></i></span>
@@ -76,11 +76,11 @@
                                 </div>
 
                                 <div class="col-md-8">
-                                    <label class="form-label fw-semibold text-secondary">OCR Primary Language</label>
+                                    <label class="form-label fw-semibold text-secondary">Bahasa Utama OCR</label>
                                     <select class="form-select" name="ocr_language">
-                                        <option value="ind+eng" {% if not settings or settings.ocr_language == 'ind+eng' %}selected{% endif %}>Indonesia + English (ind+eng)</option>
+                                        <option value="ind+eng" {% if not settings or settings.ocr_language == 'ind+eng' %}selected{% endif %}>Indonesia + Inggris (ind+eng)</option>
                                         <option value="ind" {% if settings and settings.ocr_language == 'ind' %}selected{% endif %}>Indonesia (ind)</option>
-                                        <option value="eng" {% if settings and settings.ocr_language == 'eng' %}selected{% endif %}>English (eng)</option>
+                                        <option value="eng" {% if settings and settings.ocr_language == 'eng' %}selected{% endif %}>Inggris (eng)</option>
                                     </select>
                                 </div>
 
@@ -99,17 +99,17 @@
                     <div class="card settings-card mb-3">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-bell fs-4 me-2" style="color:#6366f1;"></i>
-                                <h4 class="section-title mb-0">Notification Preferences</h4>
+                                <i class="bi bi-bell fs-4 me-2" style="color:#0284c7;"></i>
+                                <h4 class="section-title mb-0">Preferensi Notifikasi</h4>
                             </div>
-                            <p class="text-muted small mb-4">Choose alert preferences for process milestones and error events.</p>
+                            <p class="text-muted small mb-4">Pilih preferensi peringatan untuk proses dan kegagalan.</p>
 
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="setting-toggle-card d-flex align-items-center justify-content-between">
                                         <div>
-                                            <div class="fw-semibold text-dark mb-1">Notify When OCR Completed</div>
-                                            <small class="text-muted">Show toast notification on batch completion</small>
+                                            <div class="fw-semibold text-dark mb-1">Beritahu Saat OCR Selesai</div>
+                                            <small class="text-muted">Tampilkan notifikasi toast saat pemrosesan selesai</small>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="notify_success" {% if not settings or settings.notify_success %}checked{% endif %}>
@@ -120,8 +120,8 @@
                                 <div class="col-md-6">
                                     <div class="setting-toggle-card d-flex align-items-center justify-content-between">
                                         <div>
-                                            <div class="fw-semibold text-dark mb-1">Notify When OCR Failed</div>
-                                            <small class="text-muted">Alert immediately if an unrecoverable failure occurs</small>
+                                            <div class="fw-semibold text-dark mb-1">Beritahu Saat OCR Gagal</div>
+                                            <small class="text-muted">Peringatkan segera jika terjadi kegagalan fatal</small>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="notify_failed" {% if not settings or settings.notify_failed %}checked{% endif %}>
@@ -132,8 +132,8 @@
                                 <div class="col-md-6">
                                     <div class="setting-toggle-card d-flex align-items-center justify-content-between">
                                         <div>
-                                            <div class="fw-semibold text-dark mb-1">Audio Notifications</div>
-                                            <small class="text-muted">Play subtle sound chime on process events</small>
+                                            <div class="fw-semibold text-dark mb-1">Notifikasi Suara</div>
+                                            <small class="text-muted">Mainkan efek suara ringan untuk setiap aktivitas proses</small>
                                         </div>
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input" type="checkbox" name="sound_notify" {% if settings and settings.sound_notify %}checked{% endif %}>
@@ -150,43 +150,43 @@
                     <div class="card settings-card mb-3">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-info-circle fs-4 me-2" style="color:#6366f1;"></i>
-                                <h4 class="section-title mb-0">About System</h4>
+                                <i class="bi bi-info-circle fs-4 me-2" style="color:#0284c7;"></i>
+                                <h4 class="section-title mb-0">Tentang Sistem</h4>
                             </div>
-                            <p class="text-muted small mb-4">Environment specifications and system contributor credits.</p>
+                            <p class="text-muted small mb-4">Spesifikasi environment dan kredit kontributor sistem.</p>
 
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="setting-info-item">
-                                        <small class="text-muted d-block mb-1">Application Version</small>
+                                        <small class="text-muted d-block mb-1">Versi Aplikasi</small>
                                         <span class="fw-bold text-dark fs-6">v1.0.0</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="setting-info-item">
-                                        <small class="text-muted d-block mb-1">Web Framework</small>
+                                        <small class="text-muted d-block mb-1">Framework Web</small>
                                         <span class="fw-bold text-dark fs-6">Flask (Python)</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="setting-info-item">
-                                        <small class="text-muted d-block mb-1">OCR Engine Core</small>
+                                        <small class="text-muted d-block mb-1">Core Mesin OCR</small>
                                         <span class="fw-bold text-dark fs-6">{{ tesseract_version if tesseract_version else 'Tesseract' }} + PyMuPDF</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="setting-info-item">
-                                        <small class="text-muted d-block mb-1">Database Store</small>
-                                        <span class="fw-bold text-dark fs-6">SQLite3</span>
+                                        <small class="text-muted d-block mb-1">Database Utama</small>
+                                        <span class="fw-bold text-dark fs-6">MySQL</span>
                                     </div>
                                 </div>
 
                                 <div class="col-12">
                                     <div class="setting-info-item">
-                                        <small class="text-muted d-block mb-1">Core Developers</small>
+                                        <small class="text-muted d-block mb-1">Pengembang Utama</small>
                                         <div class="fw-bold text-dark">
                                             Bagus Dwi Putra Setiawan & Sayyid Ashhabussunan
                                         </div>
@@ -202,12 +202,12 @@
             <!-- STICKY ACTION FOOTER BAR -->
             <div class="settings-sticky-footer d-flex justify-content-between align-items-center">
                 <small class="text-muted">
-                    <i class="bi bi-info-circle me-1" style="color:#6366f1;"></i>Settings changes apply instantly across modules
+                    <i class="bi bi-info-circle me-1" style="color:#0284c7;"></i>Perubahan pengaturan akan langsung diterapkan di semua modul
                 </small>
                 <div class="d-flex gap-2">
                     <button type="reset" class="btn btn-outline-secondary btn-sm px-4 rounded-3">Reset</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 rounded-3" style="background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;">
-                        <i class="bi bi-floppy me-1"></i> Save Settings
+                    <button type="submit" class="btn btn-gradient-primary btn-sm px-4 rounded-3">
+                        <i class="bi bi-floppy me-1"></i> Simpan Pengaturan
                     </button>
                 </div>
             </div>

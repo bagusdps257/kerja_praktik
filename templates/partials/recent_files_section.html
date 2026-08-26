@@ -3,17 +3,17 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h5 class="analytics-section-title mb-1">
-                <i class="bi bi-clock-history me-2" style="color:#6366f1;"></i>
-                Recent Processed Files
+                <i class="bi bi-clock-history me-2" style="color:#0284c7;"></i>
+                File Terbaru Diproses
             </h5>
             <small class="text-muted">
-                Latest OCR activities from the database (most recent first)
+                Aktivitas OCR terbaru dari database (terbaru di atas)
             </small>
         </div>
 
         <a href="{{ url_for('dashboard.documents') }}"
            class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-            View All <i class="bi bi-arrow-right ms-1"></i>
+            Lihat Semua <i class="bi bi-arrow-right ms-1"></i>
         </a>
     </div>
 
@@ -22,10 +22,10 @@
 
             <thead>
                 <tr>
-                    <th class="analytics-th" width="170">Time</th>
-                    <th class="analytics-th">File Name</th>
+                    <th class="analytics-th" width="170">Waktu</th>
+                    <th class="analytics-th">Nama File</th>
                     <th class="analytics-th" width="140">Status</th>
-                    <th class="analytics-th">Description</th>
+                    <th class="analytics-th">Keterangan</th>
                 </tr>
             </thead>
 
@@ -38,18 +38,21 @@
                 <tr class="analytics-user-row">
 
                     <td class="text-muted small fw-medium">
-                        {{ file.waktu }}
+                        {{ file.updated_waktu if file.updated_waktu else file.waktu }}
                     </td>
 
                     <td>
                         <div class="d-flex align-items-center gap-2.5">
-                            <div class="d-flex align-items-center justify-content-center rounded-3" style="background: rgba(99, 102, 241, 0.08); color: #6366f1; width: 34px; height: 34px;">
+                            <div class="d-flex align-items-center justify-content-center rounded-3" style="background: rgba(2, 132, 199, 0.08); color: #0284c7; width: 34px; height: 34px;">
                                 <i class="bi bi-file-earmark-pdf fs-6"></i>
                             </div>
 
                             <div class="fw-semibold text-dark text-break" style="font-size: .9rem;">
                                 {{ file.nama_file }}
                             </div>
+                            <button type="button" class="btn-copy" onclick="copyToClipboard(this, '{{ file.nama_file }}', 'Nama file')" title="Salin nama file">
+                                <i class="bi bi-copy"></i>
+                            </button>
                         </div>
                     </td>
 
@@ -59,21 +62,21 @@
 
                             <span class="badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold">
                                 <i class="bi bi-check-circle-fill me-1"></i>
-                                Success
+                                Sukses
                             </span>
 
                         {% elif file.status == 'SKIP' %}
 
                             <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">
                                 <i class="bi bi-skip-forward-fill me-1"></i>
-                                Skipped
+                                Dilewati
                             </span>
 
                         {% else %}
 
                             <span class="badge badge-soft-danger px-3 py-1.5 rounded-pill fw-bold">
                                 <i class="bi bi-x-circle-fill me-1"></i>
-                                Failed
+                                Gagal
                             </span>
 
                         {% endif %}
@@ -93,7 +96,7 @@
                 <tr>
                     <td colspan="4" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
-                        <div class="fw-semibold">No recent OCR activity available.</div>
+                        <div class="fw-semibold">Belum ada aktivitas OCR terbaru.</div>
                     </td>
                 </tr>
 

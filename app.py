@@ -2,7 +2,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_login import LoginManager
 
-from config.settings import SECRET_KEY, SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS
+from config.settings import SECRET_KEY, SQLALCHEMY_DATABASE_URI, SQLALCHEMY_TRACK_MODIFICATIONS, FLASK_DEBUG
 from models.extensions import db
 from models.user_model import UserModel
 from routes.dashboard import dashboard_bp
@@ -45,7 +45,26 @@ app.register_blueprint(folder_bp)
 app.register_blueprint(export_bp)
 app.register_blueprint(auth_bp)
 
+@app.template_filter('format_datetime')
+def format_datetime_filter(value):
+    if not value or value == '-':
+        return '-'
+    try:
+        from datetime import datetime
+        clean_ts = str(value).replace('T', ' ')
+        if '.' in clean_ts:
+            clean_ts = clean_ts.split('.')[0]
+        dt = datetime.strptime(clean_ts, '%Y-%m-%d %H:%M:%S')
+        bulan = [
+            '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ]
+        return f"{dt.day} {bulan[dt.month]} {dt.year}, {dt.strftime('%H:%M')} WIB"
+    except Exception:
+        return str(value).replace('T', ' ').split('.')[0]
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=FLASK_DEBUG)

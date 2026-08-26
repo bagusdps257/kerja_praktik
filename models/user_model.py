@@ -16,6 +16,32 @@ class User(UserMixin, db.Model):
             return False
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def formatted_created_at(self):
+        return self._format_timestamp(self.created_at)
+
+    @property
+    def formatted_last_login(self):
+        return self._format_timestamp(self.last_login)
+
+    def _format_timestamp(self, ts_str):
+        if not ts_str or ts_str == '-':
+            return '-'
+        try:
+            # Handle ISO string with or without microsecond / T
+            clean_ts = str(ts_str).replace('T', ' ')
+            if '.' in clean_ts:
+                clean_ts = clean_ts.split('.')[0]
+            dt = datetime.strptime(clean_ts, '%Y-%m-%d %H:%M:%S')
+            
+            bulan = [
+                '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ]
+            return f"{dt.day} {bulan[dt.month]} {dt.year}, {dt.strftime('%H:%M')} WIB"
+        except Exception:
+            return str(ts_str).replace('T', ' ').split('.')[0]
+
     def __repr__(self):
         return f"<User id={self.id} username={self.username}>"
 

@@ -14,10 +14,10 @@ function showToast(message, type = 'info', duration = 4000) {
     };
 
     const colors = {
-        success: { bg: '#ecfdf5', border: '#10b981', text: '#065f46', icon: '#10b981' },
-        warning: { bg: '#fffbeb', border: '#f59e0b', text: '#92400e', icon: '#f59e0b' },
-        danger:  { bg: '#fef2f2', border: '#ef4444', text: '#991b1b', icon: '#ef4444' },
-        info:    { bg: '#eef2ff', border: '#6366f1', text: '#3730a3', icon: '#6366f1' }
+        success: { bg: '#ecfdf5', border: '#059669', text: '#065f46', icon: '#059669' },
+        warning: { bg: '#fffbeb', border: '#d97706', text: '#92400e', icon: '#d97706' },
+        danger:  { bg: '#fff1f2', border: '#e11d48', text: '#9f1239', icon: '#e11d48' },
+        info:    { bg: '#e0f2fe', border: '#0284c7', text: '#0369a1', icon: '#0284c7' }
     };
 
     const c = colors[type] || colors.info;

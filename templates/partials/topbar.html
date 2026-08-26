@@ -1,10 +1,11 @@
 <div class="topbar">
 
-    <form action="{{ url_for('dashboard.documents') }}" method="GET" class="search-box" id="topbar-search-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <form action="{{ url_for('dashboard.documents') }}" method="GET" class="search-box position-relative d-flex align-items-center" id="topbar-search-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <i class="bi bi-search"></i>
         <input type="text" id="topbar-search-input" name="q" value="{{ request.args.get('q', '') }}"
-            placeholder="Search by filename, author, status, path..." autocomplete="off">
+            placeholder="Cari file atau author... (Ctrl+K)" autocomplete="off">
+        <kbd class="kbd-shortcut position-absolute end-0 me-2 d-none d-md-inline-flex">Ctrl K</kbd>
         <!-- Preserve active filters when searching -->
         {% if request.args.get('status') %}
         <input type="hidden" name="status" value="{{ request.args.get('status') }}">
@@ -23,13 +24,15 @@
             </div>
             <div class="dropdown-menu dropdown-menu-end notification-panel">
                 <div class="notification-header">
-                    <h6 class="mb-0 fw-bold">Notifications</h6>
-                    <a href="#" id="clear-all-notifications" class="text-danger text-decoration-none small fw-semibold"><i class="bi bi-trash3 me-1"></i>Clear all</a>
+                    <h6 class="mb-0 fw-bold">Notifikasi</h6>
+                    <a href="#" id="clear-all-notifications"
+                        class="text-danger text-decoration-none small fw-semibold"><i
+                            class="bi bi-trash3 me-1"></i>Hapus semua</a>
                 </div>
                 <div class="notification-list" id="notification-list">
                     <div class="notification-empty">
                         <i class="bi bi-bell-slash text-muted fs-4"></i>
-                        <p class="text-muted small mt-2 mb-0">No new notifications</p>
+                        <p class="text-muted small mt-2 mb-0">Tidak ada notifikasi baru</p>
                     </div>
                 </div>
             </div>
