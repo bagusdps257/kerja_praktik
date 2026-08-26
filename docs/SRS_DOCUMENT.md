@@ -278,9 +278,11 @@ Antarmuka pengguna dirancang dengan berpedoman pada prinsip modern UI/UX:
 
 ### 4.3 Modul 3: Monitoring Antrean dan Log Terminal
 
-#### **FR-08: Pemantauan Antrean Real-time & Sinyal Kontrol**
+#### **FR-08: Pemantauan Antrean Real-time & Sinyal Kontrol (Stop & Pause/Resume)**
 * **Deskripsi:** Sistem harus menyajikan antarmuka pemantauan antrean berkas OCR yang sedang aktif (*Active Tasks Queue*), nama berkas yang sedang diproses, nomor halaman aktif, progress bar per berkas, dan total task antrean yang diperbarui secara asinkron via AJAX polling (1.5–3 detik).
-* **Fitur Kontrol:** Pengguna dapat mengirimkan perintah **Jeda Antrean** (*Pause Queue*) untuk menghentikan pengambilan berkas baru sementara waktu, atau **Lanjutkan Antrean** (*Resume Queue*).
+* **Fitur Kontrol Operasional:**
+  1. **Penghentian Proses OCR (*Stop Button* via rute `/stop`):** Pengguna dapat menekan tombol **"Stop"** pada Dasbor Utama (dilengkapi modal konfirmasi keamanan) untuk mengirimkan sinyal interupsi pembatalan (`ocr_stop.signal`) agar background worker OCR berhenti dengan aman (*graceful termination*).
+  2. **Jeda Antrean (*Pause/Resume Queue* via rute `/api/queue/pause`):** Pengguna dapat menekan tombol **"Jeda Antrean"** pada Halaman Monitoring untuk menangguhkan pengerjaan berkas berikutnya tanpa memutus pengerjaan berkas yang sedang aktif berjalan.
 
 #### **FR-09: Live Log Terminal Konsol (ocr_worker_node_alpha.log)**
 * **Deskripsi:** Sistem harus membaca dan menyajikan streaming baris log eksekusi OCR secara langsung (*live log streaming*) dari berkas log sistem ke dalam antarmuka panel terminal hitam dengan pewarnaan teks terminal, pemformatan baris terbaru, dan fitur kontrol **Auto-scroll ON/OFF**.
