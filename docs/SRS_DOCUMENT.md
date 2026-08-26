@@ -39,7 +39,7 @@
 4. [BAB 4: KEBUTUHAN FUNGSIONAL SISTEM (FUNCTIONAL REQUIREMENTS)](#bab-4-kebutuhan-fungsional)
    - 4.1 Modul 1: Autentikasi dan Manajemen Pengguna (FR-01 s.d FR-03)
    - 4.2 Modul 2: Core Engine OCR dan Multiprocessing (FR-04 s.d FR-07)
-   - 4.3 Modul 3: Monitoring Antrean dan Metrik Server (FR-08 s.d FR-09)
+   - 4.3 Modul 3: Monitoring Antrean dan Log Terminal (FR-08 s.d FR-09)
    - 4.4 Modul 4: Manajemen Dokumen dan Pengarsipan Digital (FR-10 s.d FR-11)
    - 4.5 Modul 5: Analitik Kinerja dan Pelaporan Excel (FR-12 s.d FR-13)
    - 4.6 Modul 6: Konfigurasi Sistem dan Pemeliharaan Database (FR-14 s.d FR-16)
@@ -276,14 +276,14 @@ Antarmuka pengguna dirancang dengan berpedoman pada prinsip modern UI/UX:
 
 ---
 
-### 4.3 Modul 3: Monitoring Antrean dan Metrik Server
+### 4.3 Modul 3: Monitoring Antrean dan Log Terminal
 
 #### **FR-08: Pemantauan Antrean Real-time & Sinyal Kontrol**
-* **Deskripsi:** Sistem harus menyajikan antarmuka pemantauan live status OCR (persentase, nama file aktif, status antrean) yang diperbarui secara asinkron via AJAX polling (1.5–3 detik).
-* **Fitur Kontrol:** Pengguna dapat mengirimkan perintah **Hentikan OCR** (*Stop Signal*) untuk membatalkan proses, atau **Jeda Antrean** (*Pause/Resume Queue*).
+* **Deskripsi:** Sistem harus menyajikan antarmuka pemantauan antrean berkas OCR yang sedang aktif (*Active Tasks Queue*), nama berkas yang sedang diproses, nomor halaman aktif, progress bar per berkas, dan total task antrean yang diperbarui secara asinkron via AJAX polling (1.5–3 detik).
+* **Fitur Kontrol:** Pengguna dapat mengirimkan perintah **Jeda Antrean** (*Pause Queue*) untuk menghentikan pengambilan berkas baru sementara waktu, atau **Lanjutkan Antrean** (*Resume Queue*).
 
-#### **FR-09: Telemetri Metrik Hardware Server**
-* **Deskripsi:** Sistem harus membaca dan menyajikan persentase utilisasi CPU (%), penggunaan memori RAM (%), dan sisa ruang penyimpanan harddisk server secara langsung via `system_service.py` (`psutil`).
+#### **FR-09: Live Log Terminal Konsol (ocr_worker_node_alpha.log)**
+* **Deskripsi:** Sistem harus membaca dan menyajikan streaming baris log eksekusi OCR secara langsung (*live log streaming*) dari berkas log sistem ke dalam antarmuka panel terminal hitam dengan pewarnaan teks terminal, pemformatan baris terbaru, dan fitur kontrol **Auto-scroll ON/OFF**.
 
 ---
 
@@ -508,8 +508,8 @@ flowchart LR
 | **FR-05** | Multiprocessing Searchable PDF | `core_engine.py` | `templates/monitoring.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-06** | Optimasi Smart Skip Teks | `core_engine.py` | `templates/monitoring.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-07** | Lanczos Upscaling & Dual-Pass PSM | `core_engine.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
-| **FR-08** | Monitoring Antrean & Kontrol Stop | `routes/ocr.py`, `services/progress_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
-| **FR-09** | Telemetri Metrik Hardware | `services/system_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
+| **FR-08** | Monitoring Antrean & Kontrol Jeda | `routes/dashboard.py`, `services/progress_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
+| **FR-09** | Live Log Terminal Konsol | `services/system_service.py` | `templates/monitoring.html` | `tests/test_analytics.py` | 🟢 PASSED |
 | **FR-10** | Tabel Riwayat & Multi-Pencarian | `models/dashboard_model.py` | `templates/documents.html` | `tests/test_database.py` | 🟢 PASSED |
 | **FR-11** | Streaming PDF Anti Path-Traversal | `routes/folder.py` | `templates/documents.html` | `tests/test_security.py` | 🟢 PASSED |
 | **FR-12** | Dasbor Analitik & Grafik Tren | `services/analytics_service.py` | `templates/analytics.html` | `tests/test_analytics.py` | 🟢 PASSED |
