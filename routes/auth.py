@@ -1,3 +1,4 @@
+from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user_model import UserModel, User
@@ -6,6 +7,22 @@ from config.settings import ALLOW_REGISTRATION
 
 auth_bp = Blueprint("auth", __name__)
 user_model = UserModel()
+
+
+def operator_required(f):
+    """
+    Decorator to restrict access to authenticated Operator (Admin) accounts only.
+    Redirects anonymous users to login and unauthorized standard users to dashboard with flash warning.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for("auth.login", next=request.path))
+        if not current_user.is_operator:
+            flash("Akses ditolak: Tindakan ini memerlukan hak akses Operator.", "danger")
+            return redirect(url_for("dashboard.index"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def is_registration_allowed():
@@ -149,3 +166,119 @@ def change_password():
     user_model.update_password(current_user.id, new_password)
     flash("Password berhasil diubah.", "success")
     return redirect(url_for("auth.profile"))
+
+
+# ==============================================================================
+# USER MANAGEMENT ROUTES (OPERATOR ONLY)
+# ==============================================================================
+
+@auth_bp.route("/users", methods=["GET"])
+@operator_required
+def users_list():
+    """Render list of all users for operator management."""
+    users = user_model.get_all_users()
+    return render_template("users.html", users=users)
+
+
+@auth_bp.route("/users/create", methods=["POST"])
+@operator_required
+def create_user():
+    """Create a new user with specific role (Operator or User)."""
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+    role = request.form.get("role", "user").strip()
+
+    if not username or not password:
+        flash("Username dan password wajib diisi.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    if len(username) < 3:
+        flash("Username minimal 3 karakter.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    if len(password) < 6:
+        flash("Password minimal 6 karakter.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    try:
+        user_model.create_user(username, password, role=role)
+        flash(f"Pengguna '{username}' berhasil ditambahkan sebagai {role.capitalize()}.", "success")
+    except ValueError as e:
+        flash(str(e), "danger")
+    except Exception as e:
+        flash(f"Gagal menambahkan pengguna: {str(e)}", "danger")
+
+    return redirect(url_for("auth.users_list"))
+
+
+@auth_bp.route("/users/delete/<int:user_id>", methods=["POST"])
+@operator_required
+def delete_user(user_id):
+    """Delete a user account (blocking self-deletion)."""
+    if user_id == current_user.id:
+        flash("Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif.", "warning")
+        return redirect(url_for("auth.users_list"))
+
+    target_user = user_model.get_by_id(user_id)
+    if not target_user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    uname = target_user.username
+    if user_model.delete_user(user_id, current_user.id):
+        flash(f"Pengguna '{uname}' berhasil dihapus.", "success")
+    else:
+        flash(f"Gagal menghapus pengguna '{uname}'.", "danger")
+
+    return redirect(url_for("auth.users_list"))
+
+
+@auth_bp.route("/users/reset-password/<int:user_id>", methods=["POST"])
+@operator_required
+def reset_user_password(user_id):
+    """Reset target user's password by operator."""
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if len(new_password) < 6:
+        flash("Password baru minimal 6 karakter.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    if new_password != confirm_password:
+        flash("Konfirmasi password baru tidak cocok.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    target_user = user_model.get_by_id(user_id)
+    if not target_user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    if user_model.reset_user_password(user_id, new_password):
+        flash(f"Password pengguna '{target_user.username}' berhasil direset.", "success")
+    else:
+        flash("Gagal mereset password.", "danger")
+
+    return redirect(url_for("auth.users_list"))
+
+
+@auth_bp.route("/users/change-role/<int:user_id>", methods=["POST"])
+@operator_required
+def change_user_role(user_id):
+    """Change target user's role between User and Operator."""
+    if user_id == current_user.id:
+        flash("Anda tidak dapat mengubah peran akun Anda sendiri yang sedang aktif.", "warning")
+        return redirect(url_for("auth.users_list"))
+
+    new_role = request.form.get("new_role", "user").strip()
+    target_user = user_model.get_by_id(user_id)
+    if not target_user:
+        flash("Pengguna tidak ditemukan.", "danger")
+        return redirect(url_for("auth.users_list"))
+
+    if user_model.update_user_role(user_id, new_role):
+        flash(f"Peran pengguna '{target_user.username}' berhasil diubah menjadi {new_role.capitalize()}.", "success")
+    else:
+        flash("Gagal mengubah peran pengguna.", "danger")
+
+    return redirect(url_for("auth.users_list"))
+

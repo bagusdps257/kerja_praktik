@@ -74,3 +74,30 @@ def test_user_management_methods(app):
         assert UserModel.delete_user(staff.id, op.id) is True
         assert UserModel.get_by_id(staff.id) is None
 
+def test_operator_routes_authorization(client, app):
+    with app.app_context():
+        op = UserModel.create_user("super_op", "pass123", role="operator")
+        reg = UserModel.create_user("regular_joe", "pass123", role="user")
+
+    # 1. Anonymous redirected to login
+    res = client.get("/users")
+    assert res.status_code == 302
+    assert "/login" in res.headers["Location"]
+
+    # 2. Regular user blocked from /users
+    client.post("/login", data={"username": "regular_joe", "password": "pass123"})
+    res_reg = client.get("/users", follow_redirects=True)
+    assert b"Akses ditolak" in res_reg.data
+
+    # 3. Regular user blocked from /reset_db
+    res_reset = client.post("/reset_db", data={"password": "pass123"}, follow_redirects=True)
+    assert b"Akses ditolak" in res_reset.data
+    client.get("/logout")
+
+    # 4. Operator allowed to view /users
+    client.post("/login", data={"username": "super_op", "password": "pass123"})
+    res_op = client.get("/users")
+    assert res_op.status_code == 200
+    assert b"Manajemen Pengguna" in res_op.data
+
+

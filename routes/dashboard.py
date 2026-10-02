@@ -422,8 +422,10 @@ def progress():
 
     return jsonify(ambil_progress_ocr())
 
+from routes.auth import operator_required
+
 @dashboard_bp.route("/reset_db", methods=["POST"])
-@login_required
+@operator_required
 def reset_db():
     password = request.form.get("password", "").strip()
     if not password or not current_user.check_password(password):
