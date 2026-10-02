@@ -1,0 +1,12 @@
+SPESIFIKASI DAN LOG MONITORING TURBIN GAS BLOK 1A
+PT JAWA SATU POWER - CILAMAYA KARAWANG
+
+Parameter Operasi:
+1. Tekanan Uap Utama: 125.4 Bar
+2. Temperatur Gas Buang: 580.2 Derajat Celsius
+3. Kecepatan Putaran Poros: 3000 RPM
+4. Daya Keluaran Aktif: 850 MegaWatt
+5. Frekuensi Jaringan Listrik: 50.02 Hertz
+
+Status Proteksi Vibrasi: Normal Stabil
+Catatan: Tidak terdeteksi anomali pada sistem pembakaran.
