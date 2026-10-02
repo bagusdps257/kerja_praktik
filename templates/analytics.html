@@ -10,10 +10,10 @@
 
         <div>
             <h1 class="page-title mb-1">
-                <i class="bi bi-bar-chart-line me-2" style="color:#0284c7;"></i>Ringkasan Analitik
+                <i class="bi bi-graph-up-arrow me-2" style="color:#0f3c68;"></i>Statistik & Analisis Operasional
             </h1>
             <p class="page-subtitle mb-0">
-                Wawasan operasional, tren performa OCR, dan penggunaan penyimpanan.
+                Metrik volume konversi dokumen, utilisasi kapasitas penyimpanan, dan performa pemrosesan PLTGU Jawa-1.
             </p>
         </div>
 
@@ -184,11 +184,11 @@
 
     <!-- VOLUME PER DAY -->
     <div class="col-lg-4">
-        <div class="analytics-card h-100">
+        <div class="analytics-card card-industrial h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="analytics-section-title mb-1">
-                        <i class="bi bi-bar-chart me-2" style="color:#0284c7;"></i>Volume per Hari
+                        <i class="bi bi-bar-chart me-2" style="color:#0f3c68;"></i>Volume per Hari
                     </h5>
                     <small class="text-muted">Dokumen diproses per hari</small>
                 </div>
@@ -212,7 +212,7 @@
 
     <!-- STORAGE USAGE -->
     <div class="col-lg-4">
-        <div class="analytics-card h-100">
+        <div class="analytics-card card-industrial h-100">
             <h5 class="analytics-section-title mb-4">
                 <i class="bi bi-hdd-stack me-2 text-primary"></i>
                 Penggunaan Penyimpanan
@@ -224,7 +224,7 @@
                     <svg viewBox="0 0 120 120" class="analytics-donut-svg">
                         <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="12"/>
                         <circle cx="60" cy="60" r="50" fill="none"
-                                stroke="{% if analytics.storage_used_percent > 80 %}#dc2626{% elif analytics.storage_used_percent > 50 %}#f59e0b{% else %}#0284c7{% endif %}"
+                                stroke="{% if analytics.storage_used_percent > 80 %}#dc2626{% elif analytics.storage_used_percent > 50 %}#f59e0b{% else %}#0f3c68{% endif %}"
                                 stroke-width="12"
                                 stroke-dasharray="{{ (analytics.storage_used_percent / 100) * 314.16 }} {{ 314.16 - (analytics.storage_used_percent / 100) * 314.16 }}"
                                 stroke-dashoffset="78.54"
@@ -244,12 +244,12 @@
             </div>
 
             <div class="progress analytics-progress mb-2">
-                <div class="progress-bar {% if analytics.storage_used_percent > 80 %}bg-danger{% elif analytics.storage_used_percent > 50 %}bg-warning{% else %}analytics-progress-bar-gradient{% endif %}"
+                <div class="progress-bar {% if analytics.storage_used_percent > 80 %}bg-danger{% elif analytics.storage_used_percent > 50 %}bg-warning{% else %}bg-primary{% endif %}"
                      style="width: {{ analytics.storage_used_percent }}%"></div>
             </div>
 
             <div class="d-flex justify-content-between small text-muted mb-3">
-                <span><i class="bi bi-circle-fill me-1" style="font-size:6px;color:#0284c7;vertical-align:middle;"></i>{{ analytics.storage_used_percent }}% Terpakai</span>
+                <span><i class="bi bi-circle-fill me-1" style="font-size:6px;color:#0f3c68;vertical-align:middle;"></i>{{ analytics.storage_used_percent }}% Terpakai</span>
                 <span>{{ analytics.storage_free_formatted }} Tersisa</span>
             </div>
 
@@ -261,21 +261,21 @@
 
             <div class="analytics-storage-item mb-2">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="analytics-storage-dot" style="background:#0284c7;"></span>
+                    <span class="analytics-storage-dot" style="background:#0f3c68;"></span>
                     <span class="small">PDF Output Folder</span>
                 </div>
                 <span class="small fw-semibold">{{ analytics.output_size_formatted }}</span>
             </div>
             <div class="analytics-storage-item mb-2">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="analytics-storage-dot" style="background:#0ea5e9;"></span>
+                    <span class="analytics-storage-dot" style="background:#334155;"></span>
                     <span class="small">System Logs</span>
                 </div>
                 <span class="small fw-semibold">{{ analytics.log_size_formatted }}</span>
             </div>
             <div class="analytics-storage-item">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="analytics-storage-dot" style="background:#10b981;"></span>
+                    <span class="analytics-storage-dot" style="background:#166534;"></span>
                     <span class="small">Sisa Ruang Drive</span>
                 </div>
                 <span class="small fw-semibold">{{ analytics.storage_free_formatted }}</span>
@@ -286,16 +286,16 @@
 
     <!-- MOST ACTIVE USERS -->
     <div class="col-lg-8">
-        <div class="analytics-card h-100">
+        <div class="analytics-card card-industrial h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <h5 class="analytics-section-title mb-1">
-                        <i class="bi bi-people-fill me-2" style="color:#0284c7;"></i>Pengguna Teraktif
+                        <i class="bi bi-person-badge-fill me-2" style="color:#0f3c68;"></i>Aktivitas Petugas Terbanyak
                     </h5>
-                    <small class="text-muted">Kontributor teratas berdasarkan dokumen yang diproses</small>
+                    <small class="text-muted">Distribusi eksekusi dokumen berdasarkan akun petugas</small>
                 </div>
                 <span class="analytics-badge analytics-badge-neutral">
-                    <i class="bi bi-trophy me-1"></i>Top {{ analytics.most_active_users|length }}
+                    <i class="bi bi-check2-circle me-1"></i>Top {{ analytics.most_active_users|length }}
                 </span>
             </div>
 
@@ -338,9 +338,9 @@
                                 {% set share = ((user.docs / analytics.total_files) * 100)|round(1) if analytics.total_files > 0 else 0 %}
                                 <div class="d-flex align-items-center gap-2 justify-content-end">
                                     <div class="progress analytics-progress flex-grow-1" style="max-width:120px;">
-                                        <div class="progress-bar analytics-progress-bar-gradient" style="width:{{ share }}%"></div>
+                                        <div class="progress-bar bg-primary" style="width:{{ share }}%"></div>
                                     </div>
-                                    <span class="small fw-semibold" style="min-width:42px;color:#0284c7;">{{ share }}%</span>
+                                    <span class="small fw-semibold" style="min-width:42px;color:#0f3c68;">{{ share }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -378,15 +378,15 @@ function setPeriod(val, label) {
 
 /* ===== Chart Colors ===== */
 const COLORS = {
-    success: '#059669',
-    successLight: 'rgba(5,150,105,0.08)',
-    successGradientStart: 'rgba(5,150,105,0.25)',
-    successGradientEnd: 'rgba(5,150,105,0.02)',
-    failed: '#e11d48',
-    primary: '#0284c7',
-    primaryLight: 'rgba(2,132,199,0.15)',
-    primaryGradientStart: 'rgba(2,132,199,0.35)',
-    primaryGradientEnd: 'rgba(2,132,199,0.05)',
+    success: '#166534',
+    successLight: 'rgba(22,101,52,0.08)',
+    successGradientStart: 'rgba(22,101,52,0.25)',
+    successGradientEnd: 'rgba(22,101,52,0.02)',
+    failed: '#991b1b',
+    primary: '#0f3c68',
+    primaryLight: 'rgba(15,60,104,0.15)',
+    primaryGradientStart: 'rgba(15,60,104,0.35)',
+    primaryGradientEnd: 'rgba(15,60,104,0.05)',
     neutral: '#64748b'
 };
 

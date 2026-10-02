@@ -1,11 +1,11 @@
 <div class="row g-3 mb-4">
 
-    <!-- Card 1: Total Input Files (Amber Gold) -->
+    <!-- Card 1: Total Input Files (Slate / Corporate) -->
     <div class="col-md-6 col-xl-3">
-        <div class="analytics-card h-100 analytics-card-hover">
+        <div class="analytics-card h-100 card-industrial-slate p-3">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Total File Input</div>
+                    <div class="analytics-card-label">Total Berkas Masuk</div>
                     <div class="analytics-card-value analytics-value-amber" id="stat-total-input">
                         {{ stats.total_input }}
                     </div>
@@ -16,65 +16,65 @@
                 </div>
             </div>
 
-            <div class="analytics-card-footer">
-                <i class="bi bi-file-earmark-pdf me-1" style="color: #d97706;"></i>
-                <span class="text-muted">File di folder input</span>
+            <div class="analytics-card-footer mt-3 pt-2 border-top">
+                <i class="bi bi-file-earmark-arrow-up me-1" style="color: #475569;"></i>
+                <span class="text-muted">Siap dalam direktori input</span>
             </div>
         </div>
     </div>
 
-    <!-- Card 2: Successfully Processed (Soft Mint) -->
+    <!-- Card 2: Successfully Processed (Forest Green) -->
     <div class="col-md-6 col-xl-3">
-        <div class="analytics-card h-100 analytics-card-hover">
+        <div class="analytics-card h-100 card-industrial-green p-3">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Berhasil Diproses</div>
+                    <div class="analytics-card-label">Arsip Selesai Diproses</div>
                     <div class="analytics-card-value analytics-value-success" id="stat-success">
                         {{ stats.total_output }}
                     </div>
                 </div>
 
                 <div class="analytics-card-icon analytics-icon-green">
-                    <i class="bi bi-check-circle"></i>
+                    <i class="bi bi-file-earmark-check"></i>
                 </div>
             </div>
 
-            <div class="analytics-card-footer">
-                <i class="bi bi-check-circle-fill me-1" style="color: #059669;"></i>
-                <span class="text-muted">Konversi selesai</span>
+            <div class="analytics-card-footer mt-3 pt-2 border-top">
+                <i class="bi bi-check2-circle me-1" style="color: #166534;"></i>
+                <span class="text-muted">PDF Searchable tersimpan</span>
             </div>
         </div>
     </div>
 
-    <!-- Card 3: Failed Documents (Soft Rose Coral) -->
+    <!-- Card 3: Verification Needed / Failed (Crimson Brick) -->
     <div class="col-md-6 col-xl-3">
-        <div class="analytics-card h-100 analytics-card-hover">
+        <div class="analytics-card h-100 card-industrial-danger p-3">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Dokumen Gagal</div>
+                    <div class="analytics-card-label">Berkas Perlu Verifikasi</div>
                     <div class="analytics-card-value analytics-value-danger" id="stat-failed">
                         {{ stats.total_gagal }}
                     </div>
                 </div>
 
                 <div class="analytics-card-icon analytics-icon-danger">
-                    <i class="bi bi-exclamation-octagon"></i>
+                    <i class="bi bi-shield-exclamation"></i>
                 </div>
             </div>
 
-            <div class="analytics-card-footer">
-                <i class="bi bi-exclamation-triangle-fill me-1" style="color: #e11d48;"></i>
-                <span class="text-muted">Perlu tinjauan manual</span>
+            <div class="analytics-card-footer mt-3 pt-2 border-top">
+                <i class="bi bi-exclamation-triangle me-1" style="color: #991b1b;"></i>
+                <span class="text-muted">Gagal konversi / file cacat</span>
             </div>
         </div>
     </div>
 
-    <!-- Card 4: Waiting Queue (Royal Violet) -->
+    <!-- Card 4: Processing Queue (Deep Navy) -->
     <div class="col-md-6 col-xl-3">
-        <div class="analytics-card h-100 analytics-card-hover">
+        <div class="analytics-card h-100 card-industrial p-3">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="analytics-card-label">Dalam Antrean</div>
+                    <div class="analytics-card-label">Antrean Pemrosesan</div>
                     <div class="analytics-card-value analytics-value-purple" id="stat-pending">
                         {{ stats.pending }}
                     </div>
@@ -85,9 +85,9 @@
                 </div>
             </div>
 
-            <div class="analytics-card-footer">
-                <i class="bi bi-circle-fill me-1" style="color: #7c3aed; font-size:6px; vertical-align:middle;"></i>
-                <span class="text-muted">Antrean proses aktif</span>
+            <div class="analytics-card-footer mt-3 pt-2 border-top">
+                <i class="bi bi-arrow-repeat me-1" style="color: #0f3c68;"></i>
+                <span class="text-muted">Menunggu giliran eksekusi</span>
             </div>
         </div>
     </div>

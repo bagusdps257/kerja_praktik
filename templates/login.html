@@ -55,25 +55,25 @@
         .auth-brand .logo-box {
             width: 48px;
             height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0284c7, #0ea5e9);
+            border-radius: 8px;
+            background: #0f3c68;
+            border: 1px solid #1e3a5f;
             color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
         }
         .auth-title {
             font-weight: 700;
             color: #f8fafc;
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             margin-bottom: 0.25rem;
             text-align: center;
         }
         .auth-subtitle {
             color: #94a3b8;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             text-align: center;
             margin-bottom: 1.75rem;
         }
@@ -87,16 +87,16 @@
             background-color: #0f172a;
             border: 1px solid #334155;
             color: #f8fafc;
-            border-radius: 10px;
+            border-radius: 6px;
             padding: 0.75rem 1rem;
             font-size: 0.95rem;
-            transition: all 0.2s ease;
+            transition: border-color 0.15s ease;
         }
         .form-control:focus {
             background-color: #0f172a;
-            border-color: #0284c7;
+            border-color: #0f3c68;
             color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
+            box-shadow: 0 0 0 3px rgba(15, 60, 104, 0.4);
         }
         .form-control::placeholder {
             color: #64748b;
@@ -105,31 +105,33 @@
             background-color: #0f172a;
             border: 1px solid #334155;
             color: #64748b;
-            border-radius: 10px 0 0 10px;
+            border-radius: 6px 0 0 6px;
         }
         .input-group .form-control {
-            border-radius: 0 10px 10px 0;
+            border-radius: 0 6px 6px 0;
         }
         .input-group:focus-within .input-group-text {
-            border-color: #0284c7;
-            color: #0284c7;
+            border-color: #0f3c68;
+            color: #94a3b8;
         }
         .btn-auth {
-            background: linear-gradient(135deg, #0284c7, #0ea5e9);
-            border: none;
+            background: #0f3c68;
+            border: 1px solid #0f3c68;
             color: #ffffff;
             font-weight: 600;
             padding: 0.75rem;
-            border-radius: 10px;
+            border-radius: 6px;
             width: 100%;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            transition: background-color 0.15s ease;
         }
         .btn-auth:hover {
-            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+            background: #0b2c4d;
+            border-color: #0b2c4d;
             color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+        }
+        .btn-auth:active {
+            background: #08213a;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .auth-footer {
             margin-top: 1.5rem;
@@ -163,8 +165,8 @@
                 <i class="bi bi-file-earmark-text"></i>
             </div>
         </div>
-        <h2 class="auth-title">Masuk ke System</h2>
-        <p class="auth-subtitle">Sistem Intelligent OCR & Document Management</p>
+        <h2 class="auth-title">Portal Petugas OCR DMS</h2>
+        <p class="auth-subtitle">PT Jawa Satu Power • PLTGU Jawa-1 Cilamaya</p>
 
         <!-- Flash Messages Display -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -182,7 +184,7 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
             <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
+                <label for="username" class="form-label">Username Petugas</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person"></i></span>
                     <input type="text" class="form-control" id="username" name="username" placeholder="Masukkan username" required autocomplete="username">
@@ -190,15 +192,15 @@
             </div>
 
             <div class="mb-4">
-                <label for="password" class="form-label">Password</label>
+                <label for="password" class="form-label">Kata Sandi</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan kata sandi" required autocomplete="current-password">
                 </div>
             </div>
 
             <button type="submit" class="btn btn-auth">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Sistem
             </button>
         </form>
 

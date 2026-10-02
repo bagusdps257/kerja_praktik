@@ -4,7 +4,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <i class="bi bi-search"></i>
         <input type="text" id="topbar-search-input" name="q" value="{{ request.args.get('q', '') }}"
-            placeholder="Cari file atau author... (Ctrl+K)" autocomplete="off">
+            placeholder="Pencarian berkas arsip atau penyusun... (Ctrl+K)" autocomplete="off">
         <kbd class="kbd-shortcut position-absolute end-0 me-2 d-none d-md-inline-flex">Ctrl K</kbd>
         <!-- Preserve active filters when searching -->
         {% if request.args.get('status') %}

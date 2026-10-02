@@ -1,26 +1,26 @@
 {% if current_user and current_user.is_authenticated %}
 <div class="dropdown user-dropdown">
     <button class="btn btn-white bg-white border border-secondary-subtle shadow-sm rounded-pill px-3 py-1 d-flex align-items-center gap-2 dropdown-toggle text-dark" type="button" id="userDropdownMenu" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-person-circle text-primary fs-5"></i>
+        <i class="bi bi-person-badge fs-5" style="color: #0f3c68;"></i>
         <span class="fw-semibold small text-truncate" style="max-width: 140px;" title="{{ current_user.username }}">{{ current_user.username }}</span>
         {% if current_user.is_operator %}
-        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Operator</span>
+        <span class="badge border rounded px-2 py-0.5" style="font-size: 0.68rem; background: #fef2f2; color: #991b1b; border-color: #fecaca !important;">Operator</span>
         {% else %}
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">User</span>
+        <span class="badge border rounded px-2 py-0.5" style="font-size: 0.68rem; background: #eff6ff; color: #0f3c68; border-color: #bfdbfe !important;">Staf</span>
         {% endif %}
     </button>
-    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2 mt-2" aria-labelledby="userDropdownMenu" style="min-width: 190px;">
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2 mt-2" aria-labelledby="userDropdownMenu" style="min-width: 200px;">
         <li>
             <a class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" href="{{ url_for('auth.profile') }}">
-                <i class="bi bi-person-vcard text-primary fs-6"></i>
-                <span class="fw-medium">Profil</span>
+                <i class="bi bi-person-vcard text-secondary fs-6"></i>
+                <span class="fw-medium">Profil Petugas</span>
             </a>
         </li>
         {% if current_user.is_operator %}
         <li>
             <a class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" href="{{ url_for('auth.users_list') }}">
-                <i class="bi bi-people text-info fs-6"></i>
-                <span class="fw-medium">Kelola Pengguna</span>
+                <i class="bi bi-shield-check text-primary fs-6"></i>
+                <span class="fw-medium">Otorisasi Petugas</span>
             </a>
         </li>
         {% endif %}
@@ -28,7 +28,7 @@
         <li>
             <a class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2 text-danger" href="{{ url_for('auth.logout') }}">
                 <i class="bi bi-box-arrow-right text-danger fs-6"></i>
-                <span class="fw-medium">Logout</span>
+                <span class="fw-medium">Keluar Sistem</span>
             </a>
         </li>
     </ul>

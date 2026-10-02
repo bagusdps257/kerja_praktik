@@ -1,8 +1,8 @@
-<div class="analytics-card p-4 text-center">
+<div class="analytics-card card-industrial p-4 text-center">
 
     <h5 class="analytics-section-title text-start mb-3">
-        <i class="bi bi-pie-chart me-2" style="color:#0284c7;"></i>
-        Distribusi Dokumen
+        <i class="bi bi-pie-chart me-2" style="color:#0f3c68;"></i>
+        Distribusi Status Pemrosesan
     </h5>
 
     {% set success = stats.total_output %}
@@ -27,24 +27,24 @@
 
     <!-- 3-Color Legend -->
     <div class="d-flex justify-content-center gap-3 flex-wrap small mb-3">
-        <div><span class="legend-dot" style="background:#059669;"></span> Diproses</div>
-        <div><span class="legend-dot" style="background:#7c3aed;"></span> Tertunda</div>
-        <div><span class="legend-dot" style="background:#e11d48;"></span> Gagal</div>
+        <div><span class="legend-dot" style="background:#166534;"></span> Selesai</div>
+        <div><span class="legend-dot" style="background:#475569;"></span> Antrean</div>
+        <div><span class="legend-dot" style="background:#991b1b;"></span> Gagal</div>
     </div>
 
     <hr class="analytics-divider my-3">
 
     <!-- Storage Details Section -->
     <h6 class="text-start small fw-bold text-muted text-uppercase mb-3" style="letter-spacing:.04em; font-size:.74rem;">
-        <i class="bi bi-hdd-stack me-1" style="color: #0284c7;"></i> Rincian Penyimpanan & Halaman
+        <i class="bi bi-hdd-stack me-1" style="color: #0f3c68;"></i> Rincian Kapasitas & Halaman
     </h6>
 
     <div class="row text-start g-2 mb-3">
 
         <!-- Input Folder Size -->
         <div class="col-6">
-            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
-                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-2 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(15, 60, 104, 0.08); color: #0f3c68;">
                     <i class="bi bi-box-arrow-in-down" style="font-size: 0.9rem;"></i>
                 </div>
                 <div>
@@ -56,12 +56,12 @@
 
         <!-- Output Folder Size -->
         <div class="col-6">
-            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
-                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(5, 150, 105, 0.1); color: #059669;">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-2 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(22, 101, 52, 0.08); color: #166534;">
                     <i class="bi bi-box-arrow-up" style="font-size: 0.9rem;"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size: 0.68rem;">Folder Output</div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Folder Arsip</div>
                     <div class="fw-bold text-dark" style="font-size: 0.82rem;" id="dist-output-size">{{ stats.output_size }}</div>
                 </div>
             </div>
@@ -69,8 +69,8 @@
 
         <!-- Total Input Pages -->
         <div class="col-6">
-            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
-                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-2 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(15, 60, 104, 0.08); color: #0f3c68;">
                     <i class="bi bi-file-earmark-text" style="font-size: 0.9rem;"></i>
                 </div>
                 <div>
@@ -82,12 +82,12 @@
 
         <!-- Total Output Pages -->
         <div class="col-6">
-            <div class="d-flex align-items-center gap-2 p-2 rounded-3 border" style="background: #f8fafc;">
-                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(5, 150, 105, 0.1); color: #059669;">
+            <div class="d-flex align-items-center gap-2 p-2 rounded-2 border" style="background: #f8fafc;">
+                <div class="d-flex align-items-center justify-content-center rounded-2" style="width: 32px; height: 32px; background: rgba(22, 101, 52, 0.08); color: #166534;">
                     <i class="bi bi-file-earmark-check" style="font-size: 0.9rem;"></i>
                 </div>
                 <div>
-                    <div class="text-muted" style="font-size: 0.68rem;">Halaman Output</div>
+                    <div class="text-muted" style="font-size: 0.68rem;">Halaman Arsip</div>
                     <div class="fw-bold text-dark" style="font-size: 0.82rem;" id="dist-output-pages">{{ stats.total_output_pages }}</div>
                 </div>
             </div>

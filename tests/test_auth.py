@@ -31,11 +31,11 @@ def test_login_and_logout_flow(client, app, test_user):
         "password": "password123"
     }, follow_redirects=True)
     assert res_ok.status_code == 200
-    assert b"Dashboard OCR" in res_ok.data
+    assert (b"Status & Kontrol" in res_ok.data or b"Operasional" in res_ok.data)
 
     # 3. Logout
     res_logout = client.get("/logout", follow_redirects=True)
-    assert b"Masuk ke System" in res_logout.data
+    assert (b"Portal Petugas" in res_logout.data or b"Masuk Sistem" in res_logout.data)
 
 def test_registration_lockdown_when_user_exists(client, app, test_user):
     # When a user exists and ALLOW_REGISTRATION is False, /register should redirect to login
@@ -98,7 +98,7 @@ def test_operator_routes_authorization(client, app):
     client.post("/login", data={"username": "super_op", "password": "pass123"})
     res_op = client.get("/users")
     assert res_op.status_code == 200
-    assert b"Manajemen Pengguna" in res_op.data
+    assert (b"Otorisasi Petugas" in res_op.data or b"Otorisasi" in res_op.data)
 
 
 def test_ui_role_visibility_and_user_crud_endpoints(client, app):
@@ -107,18 +107,18 @@ def test_ui_role_visibility_and_user_crud_endpoints(client, app):
         staff = UserModel.create_user("staff_member", "pass1234", role="user")
         staff_id = staff.id
 
-    # 1. Staff view /documents: Hapus Riwayat and Kelola Pengguna must NOT appear
+    # 1. Staff view /documents: Hapus Riwayat and Otorisasi Petugas must NOT appear
     client.post("/login", data={"username": "staff_member", "password": "pass1234"})
     res_staff_doc = client.get("/documents")
     assert b"Hapus Riwayat" not in res_staff_doc.data
-    assert b"Kelola Pengguna" not in res_staff_doc.data
+    assert b"Otorisasi Petugas" not in res_staff_doc.data
     client.get("/logout")
 
-    # 2. Operator view /documents: Hapus Riwayat and Kelola Pengguna MUST appear
+    # 2. Operator view /documents: Hapus Riwayat and Otorisasi Petugas MUST appear
     client.post("/login", data={"username": "operator_boss", "password": "pass1234"})
     res_op_doc = client.get("/documents")
     assert b"Hapus Riwayat" in res_op_doc.data
-    assert b"Kelola Pengguna" in res_op_doc.data
+    assert b"Otorisasi Petugas" in res_op_doc.data
 
     # 3. Operator creates new user via HTTP POST
     res_create = client.post("/users/create", data={

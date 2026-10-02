@@ -8,10 +8,10 @@
 
     <div>
         <h1 class="page-title mb-1">
-            <i class="bi bi-activity me-2" style="color:#0284c7;"></i>OCR Monitoring
+            <i class="bi bi-activity me-2" style="color:#0f3c68;"></i>Pemantauan Antrean & Log Operasional
         </h1>
         <p class="page-subtitle mb-0">
-            Antrean pemrosesan dan log terminal.
+            Pengawasan antrean pemrosesan dokumen dan rekaman log konversi OCR secara langsung.
         </p>
     </div>
 
@@ -39,8 +39,8 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2 ms-2">
-                        <i class="bi bi-terminal-fill me-1" style="color: #0284c7;"></i>
-                        <span class="fw-bold text-light">ocr_worker_node_alpha.log</span>
+                        <i class="bi bi-terminal-fill me-1" style="color: #38bdf8;"></i>
+                        <span class="fw-bold text-light">ocr_conversion_service.log</span>
                     </div>
 
                 </div>
@@ -65,7 +65,7 @@
                 {% else %}
 
                     <div class="terminal-line text-muted">
-                        Belum ada log proses OCR.
+                        Belum ada rekaman log pemrosesan OCR.
                     </div>
 
                 {% endif %}
@@ -79,16 +79,16 @@
     <!-- ACTIVE QUEUE -->
     <div class="col-lg-4">
 
-        <div class="analytics-card h-100 p-4 d-flex flex-column">
+        <div class="analytics-card card-industrial h-100 p-4 d-flex flex-column">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
 
                 <h5 class="analytics-section-title mb-0">
-                    <i class="bi bi-list-task me-2" style="color:#0284c7;"></i>
-                    Antrean Aktif
+                    <i class="bi bi-list-task me-2" style="color:#0f3c68;"></i>
+                    Antrean Berkas Aktif
                 </h5>
 
-                <span class="badge badge-soft-primary px-3 py-1.5 rounded-pill fw-bold" id="activeTaskBadge">{{ active_task_count }} Tasks</span>
+                <span class="badge badge-soft-primary px-2.5 py-1 rounded-1 fw-semibold" id="activeTaskBadge">{{ active_task_count }} Berkas</span>
 
             </div>
 
@@ -96,19 +96,19 @@
 
                 {% if queue_tasks %}
                     {% for task in queue_tasks %}
-                        <div class="queue-item {% if task.status == 'PROCESSING' %}processing{% endif %} p-3 rounded-3 mb-2 border">
+                        <div class="queue-item {% if task.status == 'PROCESSING' %}processing{% endif %} p-3 rounded-2 mb-2 border">
 
                             <div class="d-flex justify-content-between align-items-start">
 
                                 <div>
-                                    <div class="{% if task.status == 'PROCESSING' %}fw-bold text-primary{% else %}fw-semibold text-dark{% endif %}" {% if task.status == 'PROCESSING' %}style="color: #0284c7 !important;"{% endif %}>
-                                        {% if task.status == 'PROCESSING' %}<i class="bi bi-gear-wide-connected me-1.5 spin-slow"></i>{% endif %}{{ task.file_name }}
+                                    <div class="{% if task.status == 'PROCESSING' %}fw-bold text-primary{% else %}fw-semibold text-dark{% endif %}" {% if task.status == 'PROCESSING' %}style="color: #0f3c68 !important;"{% endif %}>
+                                        {% if task.status == 'PROCESSING' %}<i class="bi bi-gear-wide-connected me-1.5"></i>{% endif %}{{ task.file_name }}
                                     </div>
                                     <div class="text-muted small">{{ task.worker }}</div>
                                 </div>
 
-                                <span class="badge {% if task.status == 'PROCESSING' %}badge-soft-primary{% elif task.status == 'QUEUED' %}badge-soft-secondary{% elif task.status == 'FAILED' %}badge-soft-danger{% else %}badge-soft-success{% endif %} px-3 py-1.5 rounded-pill fw-bold">
-                                    {% if task.status == 'PROCESSING' %}<span class="status-pulse-dot me-1" style="background:#0284c7;"></span>{% endif %}{{ task.status }}
+                                <span class="badge {% if task.status == 'PROCESSING' %}badge-soft-primary{% elif task.status == 'QUEUED' %}badge-soft-secondary{% elif task.status == 'FAILED' %}badge-soft-danger{% else %}badge-soft-success{% endif %} px-2.5 py-1 rounded-1 fw-semibold">
+                                    {% if task.status == 'PROCESSING' %}<span class="status-pulse-dot me-1" style="background:#0f3c68;"></span>{% endif %}{{ task.status }}
                                 </span>
 
                             </div>
@@ -330,7 +330,7 @@ function updateMonitoringUI(data) {
                 let pulseDot = '';
                 if (isProc) {
                     badgeClass = 'badge-soft-primary';
-                    pulseDot = '<span class="status-pulse-dot me-1" style="background:#0284c7;"></span>';
+                    pulseDot = '<span class="status-pulse-dot me-1" style="background:#0f3c68;"></span>';
                 } else if (task.status === 'QUEUED') {
                     badgeClass = 'badge-soft-secondary';
                 } else if (task.status === 'FAILED') {
@@ -344,7 +344,7 @@ function updateMonitoringUI(data) {
                     detailHtml = `
                         <div class="small text-muted mt-2">File ${task.current_page} of ${task.total_pages}</div>
                         <div class="progress analytics-progress mt-2" style="height: 6px;">
-                            <div class="progress-bar analytics-progress-bar-gradient" style="width:${task.progress}%"></div>
+                            <div class="progress-bar bg-primary" style="width:${task.progress}%"></div>
                         </div>
                     `;
                 } else if (task.pending_files) {
@@ -352,7 +352,7 @@ function updateMonitoringUI(data) {
                 }
 
                 const fileNameHtml = isProc 
-                    ? `<div class="fw-bold text-primary" style="color: #0284c7 !important;"><i class="bi bi-gear-wide-connected me-1.5 spin-slow"></i>${escapeHtml(task.file_name)}</div>`
+                    ? `<div class="fw-bold text-primary" style="color: #0f3c68 !important;"><i class="bi bi-gear-wide-connected me-1.5"></i>${escapeHtml(task.file_name)}</div>`
                     : `<div class="fw-semibold text-dark">${escapeHtml(task.file_name)}</div>`;
 
                 item.innerHTML = `

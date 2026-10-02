@@ -9,17 +9,17 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
             <h1 class="page-title mb-1">
-                <i class="bi bi-people-fill me-2" style="color:#0284c7;"></i>Manajemen Pengguna
+                <i class="bi bi-shield-check me-2" style="color:#0f3c68;"></i>Otorisasi Petugas & Hak Akses
             </h1>
             <p class="page-subtitle mb-0">
-                Kelola hak akses peran (Operator / User biasa), pembuatan akun, dan reset kata sandi.
+                Manajemen akun petugas, wewenang operasional (Operator Sistem / Staf Operasional), dan kredensial akses.
             </p>
         </div>
         <div>
-            <button type="button" class="btn btn-primary d-flex align-items-center gap-2 px-3.5 py-2.5 rounded-3 fw-semibold shadow-sm"
+            <button type="button" class="btn btn-primary d-flex align-items-center gap-2 px-3.5 py-2.5 rounded-2 fw-semibold"
                     data-bs-toggle="modal" data-bs-target="#addUserModal">
                 <i class="bi bi-person-plus-fill fs-6"></i>
-                <span>Tambah Pengguna Baru</span>
+                <span>Tambah Petugas Baru</span>
             </button>
         </div>
     </div>
@@ -28,11 +28,11 @@
 <!-- KPI SUMMARY STATS -->
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+        <div class="kpi-card card-industrial-slate d-flex align-items-center justify-content-between p-3.5">
             <div>
-                <div class="kpi-label mb-1">Total Pengguna</div>
+                <div class="kpi-label mb-1">Total Petugas</div>
                 <div class="kpi-value text-dark" style="font-size: 1.8rem;">{{ users|length }}</div>
-                <small class="text-muted">Terdaftar di sistem</small>
+                <small class="text-muted">Terdaftar di sistem PLTGU</small>
             </div>
             <div class="kpi-icon bg-primary-subtle text-primary">
                 <i class="bi bi-people"></i>
@@ -40,13 +40,13 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+        <div class="kpi-card card-industrial-danger d-flex align-items-center justify-content-between p-3.5">
             <div>
-                <div class="kpi-label mb-1">Operator (Admin)</div>
+                <div class="kpi-label mb-1">Operator Sistem</div>
                 <div class="kpi-value text-danger" style="font-size: 1.8rem;">
                     {{ users|selectattr('is_operator')|list|length }}
                 </div>
-                <small class="text-muted">Akses penuh & kelola akun</small>
+                <small class="text-muted">Akses kontrol penuh & konfigurasi</small>
             </div>
             <div class="kpi-icon bg-danger-subtle text-danger">
                 <i class="bi bi-shield-lock"></i>
@@ -54,13 +54,13 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+        <div class="kpi-card card-industrial d-flex align-items-center justify-content-between p-3.5">
             <div>
-                <div class="kpi-label mb-1">User Biasa</div>
+                <div class="kpi-label mb-1">Staf Operasional</div>
                 <div class="kpi-value text-info" style="font-size: 1.8rem;">
                     {{ users|rejectattr('is_operator')|list|length }}
                 </div>
-                <small class="text-muted">Operasional & ekspor OCR</small>
+                <small class="text-muted">Operasional OCR & inspeksi arsip</small>
             </div>
             <div class="kpi-icon bg-info-subtle text-info">
                 <i class="bi bi-person-badge"></i>
@@ -70,14 +70,14 @@
 </div>
 
 <!-- MAIN USERS TABLE CARD -->
-<div class="enterprise-card p-4">
+<div class="enterprise-card card-industrial p-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <h5 class="fw-bold mb-1">Daftar Akun Pengguna</h5>
-            <p class="text-muted small mb-0">Hanya akun Operator yang dapat membuat, mengubah peran, atau menghapus pengguna.</p>
+            <h5 class="fw-bold mb-1">Daftar Otorisasi Petugas</h5>
+            <p class="text-muted small mb-0">Hanya akun Operator Sistem yang berwenang menambah, mengubah wewenang peran, atau menonaktifkan akun.</p>
         </div>
-        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill small fw-semibold">
-            <i class="bi bi-shield-check text-success me-1"></i>Sistem Terproteksi RBAC
+        <span class="badge bg-light text-secondary border px-2.5 py-1.5 rounded-1 small fw-semibold">
+            <i class="bi bi-shield-lock text-primary me-1"></i>Otorisasi Berbasis Peran (RBAC)
         </span>
     </div>
 
@@ -86,12 +86,12 @@
             <thead class="table-light">
                 <tr style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">
                     <th class="py-3 px-3" style="width: 50px;">No</th>
-                    <th class="py-3">Pengguna</th>
-                    <th class="py-3" style="width: 140px;">Peran</th>
-                    <th class="py-3">Hak Akses</th>
+                    <th class="py-3">Petugas</th>
+                    <th class="py-3" style="width: 170px;">Wewenang Peran</th>
+                    <th class="py-3">Hak Akses Modul</th>
                     <th class="py-3">Tanggal Dibuat</th>
                     <th class="py-3">Login Terakhir</th>
-                    <th class="py-3 text-center" style="width: 160px;">Aksi</th>
+                    <th class="py-3 text-center" style="width: 160px;">Tindakan</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,15 +100,15 @@
                     <td class="px-3 text-muted fw-semibold small">{{ loop.index }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2.5">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center {% if u.is_operator %}bg-danger-subtle text-danger{% else %}bg-primary-subtle text-primary{% endif %}"
-                                 style="width: 38px; height: 38px; font-size: 1.1rem; flex-shrink: 0;">
+                            <div class="rounded-2 d-flex align-items-center justify-content-center {% if u.is_operator %}bg-danger-subtle text-danger{% else %}bg-primary-subtle text-primary{% endif %}"
+                                 style="width: 36px; height: 36px; font-size: 1.1rem; flex-shrink: 0;">
                                 <i class="bi {% if u.is_operator %}bi-shield-check{% else %}bi-person{% endif %}"></i>
                             </div>
                             <div>
                                 <div class="fw-bold text-dark d-flex align-items-center gap-1.5">
                                     <span>{{ u.username }}</span>
                                     {% if current_user and current_user.id == u.id %}
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Anda</span>
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-1 px-2 py-0.5" style="font-size: 0.68rem;">Anda</span>
                                     {% endif %}
                                 </div>
                                 <small class="text-muted">ID: #{{ u.id }}</small>
@@ -117,20 +117,20 @@
                     </td>
                     <td>
                         {% if u.is_operator %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
-                            <i class="bi bi-shield-fill me-1"></i>Operator
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-1 px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-fill me-1"></i>Operator Sistem
                         </span>
                         {% else %}
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
-                            <i class="bi bi-person me-1"></i>User Biasa
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-1 px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
+                            <i class="bi bi-person me-1"></i>Staf Operasional
                         </span>
                         {% endif %}
                     </td>
                     <td class="small text-muted">
                         {% if u.is_operator %}
-                        <span class="text-danger fw-semibold">Akses Penuh:</span> OCR, Folder, Pengaturan, Kelola User, Hapus Data
+                        <span class="text-danger fw-semibold">Akses Penuh:</span> Eksekusi OCR, Direktori, Otorisasi, Reset Riwayat
                         {% else %}
-                        <span class="text-primary fw-semibold">Operasional:</span> OCR, Folder, Pengaturan, Ekspor Data <span class="badge bg-light text-muted border ms-1">No Delete</span>
+                        <span class="text-primary fw-semibold">Operasional:</span> Eksekusi OCR, Direktori, Validasi Akurasi, Ekspor <span class="badge bg-light text-muted border ms-1">Tanpa Hapus</span>
                         {% endif %}
                     </td>
                     <td class="small text-muted">

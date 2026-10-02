@@ -1,17 +1,26 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard OCR{% endblock %}
+{% block title %}Status & Kontrol Operasional - OCR DMS Jawa Satu Power{% endblock %}
 
 {% block content %}
 
 <!-- Page Header -->
 <div class="page-header mb-4">
-    <h1 class="page-title mb-1">
-        <i class="bi bi-grid-1x2 me-2" style="color:#0284c7;"></i>Ringkasan Sistem
-    </h1>
-    <p class="page-subtitle">
-        Metrik langsung untuk pemrosesan dokumen dan alur kerja.
-    </p>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="page-title mb-1" style="color: #0f172a;">
+                <i class="bi bi-speedometer2 me-2" style="color:#0f3c68;"></i>Status & Kontrol Operasional
+            </h1>
+            <p class="page-subtitle mb-0">
+                Sistem Digitalisasi Dokumen & Konversi Searchable PDF — PT Jawa Satu Power (PLTGU Jawa-1)
+            </p>
+        </div>
+        <div>
+            <span class="badge border px-3 py-2 rounded-2 fw-semibold" style="background: #ffffff; color: #0f3c68; border-color: #cbd5e1 !important;">
+                <i class="bi bi-geo-alt-fill me-1 text-danger"></i>Unit Cilamaya, Karawang
+            </span>
+        </div>
+    </div>
 </div>
 
 <!-- KPI Cards -->
