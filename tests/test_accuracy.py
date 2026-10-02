@@ -81,3 +81,41 @@ def test_extract_pdf_text_from_file(tmp_path):
     assert len(result["pages"]) == 1
     assert result["pages"][0]["char_count"] > 0
     assert result["pages"][0]["word_count"] > 0
+
+
+def test_inspect_text_and_calculate_accuracy_endpoints(client, app, test_user, tmp_path, monkeypatch):
+    # 1. Login user
+    client.post("/login", data={"username": "admin_test", "password": "password123"})
+
+    # 2. Setup mock output directory with a sample PDF
+    from models.model_provider import db_model
+    monkeypatch.setattr(db_model, "output_dir", str(tmp_path))
+
+    sample_pdf = str(tmp_path / "report_2026.pdf")
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((50, 100), "Laporan Operasional Turbin PLTGU Jawa Satu", fontsize=12)
+    doc.save(sample_pdf)
+    doc.close()
+
+    # 3. Test GET /documents/<filename>/inspect-text
+    res_inspect = client.get("/documents/report_2026.pdf/inspect-text")
+    assert res_inspect.status_code == 200
+    data_inspect = res_inspect.get_json()
+    assert data_inspect["success"] is True
+    assert "Turbin PLTGU" in data_inspect["full_text"]
+    assert data_inspect["page_count"] == 1
+
+    # 4. Test POST /documents/calculate-accuracy
+    res_calc = client.post("/documents/calculate-accuracy", json={
+        "reference_text": "Laporan Operasional Turbin PLTGU Jawa Satu",
+        "ocr_text": "Laporan 0perasional Turbin PLTGU Jawa Satu"
+    })
+    assert res_calc.status_code == 200
+    data_calc = res_calc.get_json()
+    assert data_calc["success"] is True
+    assert "metrics" in data_calc
+    assert data_calc["metrics"]["substitutions"] == 1
+    assert data_calc["metrics"]["character_accuracy"] > 95.0
+    assert "diff_tokens" in data_calc["metrics"]
+

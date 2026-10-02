@@ -458,4 +458,74 @@ def reset_db():
         core_engine.catat_log(f"❌ Gagal reset database: {str(e)}")
         flash(f"Gagal mereset database: {str(e)}", "danger")
 
-    return redirect(request.referrer or url_for("dashboard.documents"))
+    return redirect(request.referrer or url_for("dashboard.documents"))
+
+
+# ==============================================================================
+# OCR QUALITY & ACCURACY INSPECTION ENDPOINTS (F-17 & TAHAP 8)
+# ==============================================================================
+from services.accuracy_service import calculate_cer_wer, extract_pdf_text
+
+@dashboard_bp.route("/documents/<path:filename>/inspect-text", methods=["GET"])
+@login_required
+def inspect_document_text(filename):
+    """
+    Ekstraksi teks dari Searchable PDF di folder output untuk inspeksi kualitas OCR.
+    """
+    folder_output = os.path.abspath(db_model.output_dir)
+    clean_filename = filename.strip('/\\')
+    target = os.path.abspath(os.path.join(folder_output, clean_filename))
+
+    def is_safe_path(candidate):
+        try:
+            return os.path.commonpath([candidate, folder_output]) == folder_output
+        except Exception:
+            return False
+
+    file_to_extract = None
+    if is_safe_path(target) and os.path.isfile(target):
+        file_to_extract = target
+    else:
+        pdf_version = os.path.splitext(clean_filename)[0] + ".pdf"
+        target_pdf = os.path.abspath(os.path.join(folder_output, pdf_version))
+        if is_safe_path(target_pdf) and os.path.isfile(target_pdf):
+            file_to_extract = target_pdf
+        else:
+            file_basename = os.path.basename(clean_filename)
+            pdf_basename = os.path.splitext(file_basename)[0] + ".pdf"
+            for root, dirs, files in os.walk(folder_output):
+                if file_basename in files:
+                    file_to_extract = os.path.join(root, file_basename)
+                    break
+                if pdf_basename in files:
+                    file_to_extract = os.path.join(root, pdf_basename)
+                    break
+
+    if not file_to_extract or not os.path.isfile(file_to_extract):
+        return jsonify({"success": False, "error": f"Berkas '{filename}' tidak ditemukan di folder output."}), 404
+
+    result = extract_pdf_text(file_to_extract)
+    if not result.get("success"):
+        return jsonify(result), 500
+
+    result["filename"] = os.path.basename(file_to_extract)
+    return jsonify(result)
+
+
+@dashboard_bp.route("/documents/calculate-accuracy", methods=["POST"])
+@login_required
+def calculate_accuracy():
+    """
+    Menghitung akurasi OCR (CER, WER, Levenshtein distance) antara teks acuan (ground truth)
+    dengan teks hasil pembacaan OCR.
+    """
+    data = request.get_json(silent=True) or {}
+    reference_text = data.get("reference_text", "")
+    ocr_text = data.get("ocr_text", "")
+
+    metrics = calculate_cer_wer(reference_text, ocr_text)
+    return jsonify({
+        "success": True,
+        "metrics": metrics
+    })
+
