@@ -36,7 +36,7 @@ from services.progress_service import (
 from services.settings_service import load_settings, resolve_tesseract_cmd
 
 from config.settings import TESSERACT_CMD
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
+pytesseract.pytesseract.tesseract_cmd = resolve_tesseract_cmd(TESSERACT_CMD)
 
 # Format ekstensi file yang didukung oleh sistem OCR
 SUPPORTED_EXTENSIONS = ('.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.tif', '.bmp', '.webp')
@@ -99,7 +99,7 @@ def ambil_progress_ocr():
     return ambil_progress()
 
 
-def validasi_awal(input_dir, output_dir):
+def validasi_awal(input_dir, output_dir, tesseract_cmd=None):
     """
     [ALUR VALIDASI AWAL]
     Memeriksa prasyarat sebelum proses OCR dimulai:
@@ -115,11 +115,13 @@ def validasi_awal(input_dir, output_dir):
         error()
         return False
 
-    if not os.path.exists(pytesseract.pytesseract.tesseract_cmd):
+    cmd_to_check = resolve_tesseract_cmd(tesseract_cmd or pytesseract.pytesseract.tesseract_cmd)
+    if not cmd_to_check or not os.path.exists(cmd_to_check):
         catat_log("ERROR FATAL: Aplikasi Tesseract tidak ditemukan!")
         error()
         return False
 
+    pytesseract.pytesseract.tesseract_cmd = cmd_to_check
     return True
 
 
@@ -562,17 +564,16 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None):
     with ctx_mgr:
         db = OCRDashboardModel()
 
-        # LANGKAH 2: Validasi awal sistem
-        if not validasi_awal(input_dir, output_dir):
-            return
-
-        # LANGKAH 3: Muat konfigurasi pengguna
+        # LANGKAH 2 & 3: Muat konfigurasi pengguna & validasi awal
         settings = load_settings()
         tesseract_cmd = resolve_tesseract_cmd(settings.get("tesseract_path"))
         ocr_lang = settings.get("ocr_language", "ind+eng")
         dpi_render = settings.get("dpi_render", 200)
         generate_searchable_pdf = True
         max_retry = settings.get("max_retry", 3)
+
+        if not validasi_awal(input_dir, output_dir, tesseract_cmd):
+            return
 
         # LANGKAH 4: Hitung total dokumen & mulai progress tracking
         total_dokumen = hitung_total_dokumen(input_dir)

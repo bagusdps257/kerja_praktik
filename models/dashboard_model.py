@@ -70,17 +70,23 @@ class OCRDashboardModel:
     def init_db(self):
         """Auto-migration fallback: memastikan kolom dan tabel siap di database aktif."""
         try:
-            from sqlalchemy import text
-            with db.engine.connect() as conn:
-                for col_name, col_type in [("subject", "VARCHAR(255)"), ("keywords", "VARCHAR(500)")]:
-                    try:
-                        conn.execute(text(f"SELECT {col_name} FROM riwayat LIMIT 1"))
-                    except Exception:
-                        try:
-                            conn.execute(text(f"ALTER TABLE riwayat ADD COLUMN {col_name} {col_type}"))
-                            conn.commit()
-                        except Exception:
-                            pass
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            if 'riwayat' in inspector.get_table_names():
+                existing_cols = {col['name'] for col in inspector.get_columns('riwayat')}
+                cols_to_add = [
+                    ("subject", "VARCHAR(255)"),
+                    ("keywords", "VARCHAR(500)"),
+                    ("updated_waktu", "VARCHAR(50)")
+                ]
+                with db.engine.connect() as conn:
+                    for col_name, col_type in cols_to_add:
+                        if col_name not in existing_cols:
+                            try:
+                                conn.execute(text(f"ALTER TABLE riwayat ADD COLUMN {col_name} {col_type}"))
+                                conn.commit()
+                            except Exception:
+                                pass
         except Exception:
             pass
 

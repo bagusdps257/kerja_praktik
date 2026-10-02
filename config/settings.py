@@ -35,5 +35,14 @@ LOG_PATH = os.path.join(BASE_DIR, "logs", "sistem_ocr.log")
 INPUT_DEFAULT = os.path.join(BASE_DIR, "input_pdf")
 OUTPUT_DEFAULT = os.path.join(BASE_DIR, "output_pdf")
 
-# Tesseract Executable (Linux Ubuntu default / override via env or settings)
-TESSERACT_CMD = os.environ.get("TESSERACT_CMD", "/usr/bin/tesseract")
+# Tesseract Executable (Linux Ubuntu default / override via env or auto-detect on Windows)
+TESSERACT_CMD = os.environ.get("TESSERACT_CMD")
+if not TESSERACT_CMD or (os.name == 'nt' and TESSERACT_CMD == "/usr/bin/tesseract"):
+    import shutil
+    which_tess = shutil.which("tesseract")
+    if which_tess:
+        TESSERACT_CMD = which_tess
+    elif os.path.exists(r"C:\Program Files\Tesseract-OCR\tesseract.exe"):
+        TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    else:
+        TESSERACT_CMD = "/usr/bin/tesseract"

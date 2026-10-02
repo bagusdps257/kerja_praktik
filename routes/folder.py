@@ -19,8 +19,27 @@ def update_folder():
     
     print(f"DEBUG update_folder: Received POST. field='{field}', value='{value}'")
 
-    allowed_fields = ("input_dir", "output_dir")
-    
+    # Support direct form submission (e.g. user hits Enter in the text input)
+    if not field:
+        input_dir = request.form.get("input_dir", "").strip()
+        output_dir = request.form.get("output_dir", "").strip()
+        if input_dir or output_dir:
+            settings = load_settings()
+            if input_dir:
+                if not os.path.isdir(input_dir):
+                    return "Folder input tidak ditemukan", 400
+                settings["input_dir"] = input_dir
+            if output_dir:
+                try:
+                    os.makedirs(output_dir, exist_ok=True)
+                except Exception as e:
+                    return f"Error creating directory: {e}", 500
+                settings["output_dir"] = output_dir
+            db_model.update_folder(settings.get("input_dir", db_model.input_dir), settings.get("output_dir", db_model.output_dir))
+            save_settings(settings)
+            return redirect(url_for("dashboard.index"))
+        return "Bad Request", 400
+
     if field not in allowed_fields or not value:
         print(f"DEBUG update_folder: Validation failed! field='{field}', value='{value}'")
         return "Bad Request", 400

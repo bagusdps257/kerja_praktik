@@ -108,6 +108,12 @@ def resolve_tesseract_cmd(tesseract_cmd):
 
     tesseract_cmd = tesseract_cmd.strip()
 
+    import shutil
+    # Check if command name is on system PATH (e.g. 'tesseract' -> 'C:\...\tesseract.exe')
+    which_path = shutil.which(tesseract_cmd)
+    if which_path:
+        return which_path
+
     if os.path.isdir(tesseract_cmd):
         exe_candidate = os.path.join(tesseract_cmd, "tesseract.exe")
         if os.path.exists(exe_candidate):
@@ -116,7 +122,13 @@ def resolve_tesseract_cmd(tesseract_cmd):
     if not tesseract_cmd.lower().endswith(".exe") and os.path.exists(tesseract_cmd + ".exe"):
         return tesseract_cmd + ".exe"
 
-    if not os.path.exists(tesseract_cmd) and os.path.exists(TESSERACT_CMD):
+    if os.path.exists(tesseract_cmd):
+        return tesseract_cmd
+
+    if os.name == 'nt' and os.path.exists(r"C:\Program Files\Tesseract-OCR\tesseract.exe"):
+        return r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+    if os.path.exists(TESSERACT_CMD):
         return TESSERACT_CMD
 
     return tesseract_cmd
