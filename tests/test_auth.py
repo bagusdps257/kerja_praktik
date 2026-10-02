@@ -41,3 +41,36 @@ def test_registration_lockdown_when_user_exists(client, app, test_user):
     # When a user exists and ALLOW_REGISTRATION is False, /register should redirect to login
     res = client.get("/register", follow_redirects=True)
     assert b"Pendaftaran akun baru ditutup oleh administrator" in res.data
+
+def test_user_role_assignment_and_operator_property(app):
+    with app.app_context():
+        u_default = UserModel.create_user("operator_tester", "pass123", role="operator")
+        u_standard = UserModel.create_user("standard_tester", "pass123", role="user")
+
+        assert u_default.role == "operator"
+        assert u_default.is_operator is True
+
+        assert u_standard.role == "user"
+        assert u_standard.is_operator is False
+
+def test_user_management_methods(app):
+    with app.app_context():
+        op = UserModel.create_user("main_op", "pass123", role="operator")
+        staff = UserModel.create_user("staff_member", "pass123", role="user")
+
+        # Operator cannot delete self
+        assert UserModel.delete_user(op.id, op.id) is False
+
+        # Operator can reset staff password
+        assert UserModel.reset_user_password(staff.id, "new_secure_pass") is True
+        refreshed_staff = UserModel.get_by_id(staff.id)
+        assert refreshed_staff.check_password("new_secure_pass") is True
+
+        # Operator can update role
+        assert UserModel.update_user_role(staff.id, "operator") is True
+        assert UserModel.get_by_id(staff.id).is_operator is True
+
+        # Operator can delete staff
+        assert UserModel.delete_user(staff.id, op.id) is True
+        assert UserModel.get_by_id(staff.id) is None
+
