@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Pengguna - OCR System{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1">
+                <i class="bi bi-people-fill me-2" style="color:#0284c7;"></i>Manajemen Pengguna
+            </h1>
+            <p class="page-subtitle mb-0">
+                Kelola hak akses peran (Operator / User biasa), pembuatan akun, dan reset kata sandi.
+            </p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary d-flex align-items-center gap-2 px-3.5 py-2.5 rounded-3 fw-semibold shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="bi bi-person-plus-fill fs-6"></i>
+                <span>Tambah Pengguna Baru</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- KPI SUMMARY STATS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+            <div>
+                <div class="kpi-label mb-1">Total Pengguna</div>
+                <div class="kpi-value text-dark" style="font-size: 1.8rem;">{{ users|length }}</div>
+                <small class="text-muted">Terdaftar di sistem</small>
+            </div>
+            <div class="kpi-icon bg-primary-subtle text-primary">
+                <i class="bi bi-people"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+            <div>
+                <div class="kpi-label mb-1">Operator (Admin)</div>
+                <div class="kpi-value text-danger" style="font-size: 1.8rem;">
+                    {{ users|selectattr('is_operator')|list|length }}
+                </div>
+                <small class="text-muted">Akses penuh & kelola akun</small>
+            </div>
+            <div class="kpi-icon bg-danger-subtle text-danger">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="kpi-card d-flex align-items-center justify-content-between p-3.5">
+            <div>
+                <div class="kpi-label mb-1">User Biasa</div>
+                <div class="kpi-value text-info" style="font-size: 1.8rem;">
+                    {{ users|rejectattr('is_operator')|list|length }}
+                </div>
+                <small class="text-muted">Operasional & ekspor OCR</small>
+            </div>
+            <div class="kpi-icon bg-info-subtle text-info">
+                <i class="bi bi-person-badge"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN USERS TABLE CARD -->
+<div class="enterprise-card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold mb-1">Daftar Akun Pengguna</h5>
+            <p class="text-muted small mb-0">Hanya akun Operator yang dapat membuat, mengubah peran, atau menghapus pengguna.</p>
+        </div>
+        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill small fw-semibold">
+            <i class="bi bi-shield-check text-success me-1"></i>Sistem Terproteksi RBAC
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle table-hover mb-0">
+            <thead class="table-light">
+                <tr style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                    <th class="py-3 px-3" style="width: 50px;">No</th>
+                    <th class="py-3">Pengguna</th>
+                    <th class="py-3" style="width: 140px;">Peran</th>
+                    <th class="py-3">Hak Akses</th>
+                    <th class="py-3">Tanggal Dibuat</th>
+                    <th class="py-3">Login Terakhir</th>
+                    <th class="py-3 text-center" style="width: 160px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="px-3 text-muted fw-semibold small">{{ loop.index }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center {% if u.is_operator %}bg-danger-subtle text-danger{% else %}bg-primary-subtle text-primary{% endif %}"
+                                 style="width: 38px; height: 38px; font-size: 1.1rem; flex-shrink: 0;">
+                                <i class="bi {% if u.is_operator %}bi-shield-check{% else %}bi-person{% endif %}"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark d-flex align-items-center gap-1.5">
+                                    <span>{{ u.username }}</span>
+                                    {% if current_user and current_user.id == u.id %}
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">Anda</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">ID: #{{ u.id }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if u.is_operator %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
+                            <i class="bi bi-shield-fill me-1"></i>Operator
+                        </span>
+                        {% else %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.78rem;">
+                            <i class="bi bi-person me-1"></i>User Biasa
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {% if u.is_operator %}
+                        <span class="text-danger fw-semibold">Akses Penuh:</span> OCR, Folder, Pengaturan, Kelola User, Hapus Data
+                        {% else %}
+                        <span class="text-primary fw-semibold">Operasional:</span> OCR, Folder, Pengaturan, Ekspor Data <span class="badge bg-light text-muted border ms-1">No Delete</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {{ u.formatted_created_at }}
+                    </td>
+                    <td class="small text-muted">
+                        {% if u.last_login and u.last_login != '-' %}
+                        <span class="text-dark fw-medium">{{ u.formatted_last_login }}</span>
+                        {% else %}
+                        <span class="fst-italic text-muted">Belum pernah</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if current_user and current_user.id == u.id %}
+                        <span class="badge bg-light text-muted border px-2.5 py-1.5 small fw-normal" title="Akun Anda yang sedang aktif">
+                            <i class="bi bi-person-check me-1 text-success"></i>Akun Aktif
+                        </span>
+                        {% else %}
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border dropdown-toggle px-2.5 py-1 rounded-2 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear me-1"></i>Tindakan
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-1.5" style="min-width: 170px;">
+                                <li>
+                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" data-bs-toggle="modal" data-bs-target="#changeRoleModal{{ u.id }}">
+                                        <i class="bi bi-person-gear text-primary"></i>
+                                        <span>Ubah Peran</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ u.id }}">
+                                        <i class="bi bi-key text-warning"></i>
+                                        <span>Reset Password</span>
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <button class="dropdown-item d-flex align-items-center gap-2 py-2 rounded-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ u.id }}">
+                                        <i class="bi bi-trash3 text-danger"></i>
+                                        <span>Hapus Akun</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL: ADD USER -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
+                         style="width: 44px; height: 44px; font-size: 1.3rem;">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="addUserModalLabel">Tambah Pengguna Baru</h5>
+                        <small class="text-muted">Buat akun untuk operator atau staf operasional.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="{{ url_for('auth.create_user') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control border-start-0" placeholder="Contoh: operator1, staf_ocr" required minlength="3" autocomplete="off">
+                        </div>
+                        <small class="text-muted">Minimal 3 karakter, alfanumerik.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Kata Sandi Awal</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control border-start-0" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Peran Akun (Role)</label>
+                        <select name="role" class="form-select" required>
+                            <option value="user" selected>User Biasa (Operasional OCR, Folder, Setelan - Tanpa Hapus DB)</option>
+                            <option value="operator">Operator (Akses Penuh: Kelola Pengguna & Hapus Riwayat)</option>
+                        </select>
+                        <div class="p-2.5 rounded-3 bg-light mt-2 small text-muted border">
+                            <i class="bi bi-info-circle text-primary me-1"></i>
+                            <strong>Operator:</strong> dapat mengelola semua akun dan menghapus basis data.<br>
+                            <strong>User:</strong> dapat menjalankan OCR, mengatur folder, dan setelan tanpa hak menghapus.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-3.5 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-3.5 py-2 rounded-3 fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Simpan Pengguna
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- USER ACTIONS MODALS -->
+{% for u in users %}
+{% if current_user and current_user.id != u.id %}
+
+<!-- MODAL: UBAH PERAN -->
+<div class="modal fade" id="changeRoleModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center"
+                         style="width: 44px; height: 44px; font-size: 1.2rem;">
+                        <i class="bi bi-person-gear"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Ubah Peran Pengguna</h5>
+                        <small class="text-muted">Pengguna: <strong>{{ u.username }}</strong></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="{{ url_for('auth.change_user_role', user_id=u.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body p-4">
+                    <label class="form-label small fw-semibold text-secondary mb-2">Pilih Peran Baru</label>
+                    <div class="form-check p-3 border rounded-3 mb-2 {% if not u.is_operator %}bg-light border-primary{% endif %}">
+                        <input class="form-check-input" type="radio" name="new_role" id="roleUser{{ u.id }}" value="user" {% if not u.is_operator %}checked{% endif %}>
+                        <label class="form-check-label d-block ms-2" for="roleUser{{ u.id }}">
+                            <span class="fw-bold d-block text-dark">User Biasa</span>
+                            <small class="text-muted">Akses operasional OCR, folder input/output, dan pengaturan tanpa hak menghapus data.</small>
+                        </label>
+                    </div>
+                    <div class="form-check p-3 border rounded-3 {% if u.is_operator %}bg-light border-danger{% endif %}">
+                        <input class="form-check-input" type="radio" name="new_role" id="roleOperator{{ u.id }}" value="operator" {% if u.is_operator %}checked{% endif %}>
+                        <label class="form-check-label d-block ms-2" for="roleOperator{{ u.id }}">
+                            <span class="fw-bold d-block text-danger">Operator (Admin)</span>
+                            <small class="text-muted">Hak akses penuh termasuk manajemen akun pengguna dan penghapusan riwayat database.</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-3.5 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-3.5 py-2 rounded-3 fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: RESET PASSWORD -->
+<div class="modal fade" id="resetPasswordModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center"
+                         style="width: 44px; height: 44px; font-size: 1.2rem;">
+                        <i class="bi bi-key-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Reset Kata Sandi</h5>
+                        <small class="text-muted">Untuk akun: <strong>{{ u.username }}</strong></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="{{ url_for('auth.reset_user_password', user_id=u.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Kata Sandi Baru</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="new_password" class="form-control border-start-0" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Konfirmasi Kata Sandi Baru</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="confirm_password" class="form-control border-start-0" placeholder="Ulangi kata sandi baru" required minlength="6" autocomplete="new-password">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-3.5 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning px-3.5 py-2 rounded-3 fw-semibold text-dark">
+                        <i class="bi bi-arrow-repeat me-1"></i>Perbarui Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: HAPUS AKUN -->
+<div class="modal fade" id="deleteUserModal{{ u.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-body p-4 text-center">
+                <div class="d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width: 56px; height: 56px; border-radius: 50%; background: #fee2e2;">
+                    <i class="bi bi-trash3 fs-3" style="color: #dc2626;"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Konfirmasi Hapus Akun</h5>
+                <p class="text-muted small mb-3">
+                    Apakah Anda yakin ingin menghapus akun pengguna <strong class="text-dark">{{ u.username }}</strong>? Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <form action="{{ url_for('auth.delete_user', user_id=u.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="d-flex gap-2 justify-content-center mt-3">
+                        <button type="button" class="btn btn-light px-3.5 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger px-3.5 py-2 rounded-3 fw-semibold">
+                            <i class="bi bi-trash3 me-1"></i>Hapus Permanen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endfor %}
+
+{% endblock %}

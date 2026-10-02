@@ -127,15 +127,18 @@
             <span>Cadangkan Data</span>
         </a>
 
+        {% if current_user and current_user.is_authenticated and current_user.is_operator %}
         <button type="button" class="btn btn-gradient-destructive d-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold text-nowrap" style="font-size: 0.88rem;" data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
             <i class="bi bi-trash3 me-2 fs-6"></i>
             <span>Hapus Riwayat</span>
         </button>
+        {% endif %}
 
     </div>
 
 </div>
 
+{% if current_user and current_user.is_authenticated and current_user.is_operator %}
 <!-- Clear History Confirmation Modal -->
 <div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
@@ -174,6 +177,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <div class="analytics-card p-4">
 

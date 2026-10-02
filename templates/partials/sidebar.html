@@ -65,6 +65,18 @@
             </a>
         </li>
 
+        {% if current_user and current_user.is_authenticated and current_user.is_operator %}
+        <li>
+            <a href="{{ url_for('auth.users_list') }}"
+            class="{% if request.endpoint == 'auth.users_list' %}active{% endif %}">
+
+                <i class="bi bi-people"></i>
+                <span>Kelola Pengguna</span>
+
+            </a>
+        </li>
+        {% endif %}
+
     </ul>
 
 </div>

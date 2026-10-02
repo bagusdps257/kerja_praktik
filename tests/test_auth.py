@@ -101,3 +101,61 @@ def test_operator_routes_authorization(client, app):
     assert b"Manajemen Pengguna" in res_op.data
 
 
+def test_ui_role_visibility_and_user_crud_endpoints(client, app):
+    with app.app_context():
+        op = UserModel.create_user("operator_boss", "pass1234", role="operator")
+        staff = UserModel.create_user("staff_member", "pass1234", role="user")
+        staff_id = staff.id
+
+    # 1. Staff view /documents: Hapus Riwayat and Kelola Pengguna must NOT appear
+    client.post("/login", data={"username": "staff_member", "password": "pass1234"})
+    res_staff_doc = client.get("/documents")
+    assert b"Hapus Riwayat" not in res_staff_doc.data
+    assert b"Kelola Pengguna" not in res_staff_doc.data
+    client.get("/logout")
+
+    # 2. Operator view /documents: Hapus Riwayat and Kelola Pengguna MUST appear
+    client.post("/login", data={"username": "operator_boss", "password": "pass1234"})
+    res_op_doc = client.get("/documents")
+    assert b"Hapus Riwayat" in res_op_doc.data
+    assert b"Kelola Pengguna" in res_op_doc.data
+
+    # 3. Operator creates new user via HTTP POST
+    res_create = client.post("/users/create", data={
+        "username": "new_hire",
+        "password": "hirepassword",
+        "role": "user"
+    }, follow_redirects=True)
+    assert res_create.status_code == 200
+    assert b"new_hire" in res_create.data
+
+    # Check new hire in DB
+    with app.app_context():
+        new_hire = UserModel.get_by_username("new_hire")
+        assert new_hire is not None
+        assert new_hire.role == "user"
+        new_hire_id = new_hire.id
+
+    # 4. Operator changes role of new_hire to operator
+    res_role = client.post(f"/users/change-role/{new_hire_id}", data={
+        "new_role": "operator"
+    }, follow_redirects=True)
+    assert res_role.status_code == 200
+    with app.app_context():
+        assert UserModel.get_by_id(new_hire_id).role == "operator"
+
+    # 5. Operator resets password of new_hire
+    res_reset_pwd = client.post(f"/users/reset-password/{new_hire_id}", data={
+        "new_password": "brandnewpassword123",
+        "confirm_password": "brandnewpassword123"
+    }, follow_redirects=True)
+    assert res_reset_pwd.status_code == 200
+
+    # 6. Operator deletes staff_member
+    res_del = client.post(f"/users/delete/{staff_id}", follow_redirects=True)
+    assert res_del.status_code == 200
+    with app.app_context():
+        assert UserModel.get_by_id(staff_id) is None
+
+
+
