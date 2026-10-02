@@ -334,6 +334,14 @@
                                title="Unduh File PDF">
                                 <i class="bi bi-download"></i>
                             </a>
+
+                            <!-- Button 3: Cek Teks & Akurasi OCR (F-17) -->
+                            <button type="button"
+                                    class="btn btn-outline-info action-btn-item shadow-sm"
+                                    onclick="openAccuracyModal('{{ baris.document_key }}', '{{ baris.nama_file }}')"
+                                    title="Periksa Teks & Akurasi OCR (F-17)">
+                                <i class="bi bi-spellcheck"></i>
+                            </button>
                         </div>
 
                         {% else %}
@@ -531,4 +539,326 @@
     </div>
 </div>
 
+<!-- ACCURACY & OCR INSPECTION MODAL (F-17 & TAHAP 8) -->
+<div class="modal fade" id="accuracyModal" tabindex="-1" aria-labelledby="accuracyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 980px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header border-bottom py-3 px-4 bg-light">
+                <div class="d-flex align-items-center gap-2.5 text-truncate me-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle"
+                         style="width: 42px; height: 42px; background: rgba(2, 132, 199, 0.12); color: #0284c7; font-size: 1.3rem;">
+                        <i class="bi bi-spellcheck"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-dark text-truncate mb-0" id="accuracyModalLabel">
+                            Inspeksi Kualitas & Akurasi OCR
+                        </h6>
+                        <small class="text-muted" id="accuracyModalSubtitle">Memuat dokumen...</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill" style="font-size: 0.75rem;">
+                        Evaluasi CER / WER (F-17)
+                    </span>
+                    <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <div class="modal-body p-4">
+                <!-- Nav Tabs -->
+                <ul class="nav nav-pills mb-3 p-1 rounded-3 bg-light border" id="accuracyTabs" role="tablist">
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link active w-100 rounded-2 fw-semibold small py-2" id="tab-extracted-btn" data-bs-toggle="pill" data-bs-target="#tab-extracted-pane" type="button" role="tab">
+                            <i class="bi bi-file-earmark-text me-1.5"></i>Teks Hasil OCR (<span id="accTotalPages">0</span> Halaman)
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100 rounded-2 fw-semibold small py-2" id="tab-compare-btn" data-bs-toggle="pill" data-bs-target="#tab-compare-pane" type="button" role="tab">
+                            <i class="bi bi-calculator me-1.5"></i>Uji Akurasi & Komparasi Ground Truth
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="accuracyTabContent">
+                    <!-- TAB 1: Extracted OCR Text -->
+                    <div class="tab-pane fade show active" id="tab-extracted-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <div class="small text-muted">
+                                <span class="fw-semibold text-dark" id="accCharCount">0</span> karakter |
+                                <span class="fw-semibold text-dark" id="accWordCount">0</span> kata terdeteksi
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="copyOcrText()">
+                                <i class="bi bi-copy me-1"></i>Salin Seluruh Teks
+                            </button>
+                        </div>
+                        <div class="position-relative">
+                            <div id="accLoadingSpinner" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="text-muted small mt-2">Mengekstrak teks dari Searchable PDF...</div>
+                            </div>
+                            <div id="accTextContainer" class="d-none">
+                                <textarea id="accFullTextarea" class="form-control font-monospace text-dark p-3 rounded-3"
+                                          rows="12" style="font-size: 0.88rem; background: #fdfdfd; resize: vertical;" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: Ground Truth Comparison & CER Calculation -->
+                    <div class="tab-pane fade" id="tab-compare-pane" role="tabpanel">
+                        <div class="alert alert-light border small text-muted mb-3 d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle text-primary fs-6 mt-0.5"></i>
+                            <div>
+                                <strong>Metode Pengujian Dosen (CER & WER):</strong> Masukkan teks acuan asli (<em>Ground Truth</em>) dokumen sumber.
+                                Sistem akan membandingkannya dengan teks OCR menggunakan algoritma Levenshtein distance untuk menghitung persentase kesalahan karakter (CER) dan akurasi kata.
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-secondary mb-1">
+                                    <i class="bi bi-cpu me-1 text-info"></i>Teks Hasil OCR (Hypothesis)
+                                </label>
+                                <textarea id="cmpOcrText" class="form-control font-monospace small" rows="8" placeholder="Teks hasil OCR otomatis terisi..." style="resize: vertical;"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label small fw-semibold text-secondary mb-0">
+                                        <i class="bi bi-file-check me-1 text-success"></i>Teks Acuan Asli (Ground Truth Reference)
+                                    </label>
+                                    <button type="button" class="btn btn-link btn-sm text-decoration-none py-0 small text-primary" onclick="pasteGroundTruth()">
+                                        <i class="bi bi-clipboard me-1"></i>Tempel dari Clipboard
+                                    </button>
+                                </div>
+                                <textarea id="cmpRefText" class="form-control font-monospace small border-primary-subtle" rows="8" placeholder="Tempel atau ketikkan teks asli acuan dokumen sumber di sini..." style="resize: vertical;"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="text-end mb-4">
+                            <button type="button" id="btnRunCalc" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" onclick="calculateAccuracyMetrics()">
+                                <i class="bi bi-calculator me-1.5"></i>Hitung Akurasi (CER & WER)
+                            </button>
+                        </div>
+
+                        <!-- RESULTS DASHBOARD -->
+                        <div id="accResultsCard" class="d-none">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 rounded-3 text-center border" style="background: #f0fdf4;">
+                                        <div class="small fw-semibold text-muted mb-1">Akurasi Karakter</div>
+                                        <div class="fw-bold text-success fs-3" id="resCharAcc">0%</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">100% - CER</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 rounded-3 text-center border" style="background: #fef2f2;">
+                                        <div class="small fw-semibold text-muted mb-1">Character Error Rate (CER)</div>
+                                        <div class="fw-bold text-danger fs-3" id="resCer">0%</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">(S + D + I) / N</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 rounded-3 text-center border" style="background: #eff6ff;">
+                                        <div class="small fw-semibold text-muted mb-1">Akurasi Kata</div>
+                                        <div class="fw-bold text-primary fs-3" id="resWordAcc">0%</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">100% - WER</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 rounded-3 text-center border" style="background: #fafaf9;">
+                                        <div class="small fw-semibold text-muted mb-1">Word Error Rate (WER)</div>
+                                        <div class="fw-bold text-secondary fs-3" id="resWer">0%</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">Salah pada level kata</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detail Breakdown -->
+                            <div class="card p-3 border rounded-3 bg-light mb-3">
+                                <div class="d-flex flex-wrap gap-4 small justify-content-center text-secondary">
+                                    <span>Total Karakter Acuan (N): <strong id="resN" class="text-dark">0</strong></span>
+                                    <span>Substitusi (S): <strong id="resS" class="text-warning">0</strong></span>
+                                    <span>Deletion (D): <strong id="resD" class="text-danger">0</strong></span>
+                                    <span>Insertion (I): <strong id="resI" class="text-info">0</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Visual Diff Viewer -->
+                            <div class="card border rounded-3 p-3">
+                                <div class="small fw-bold text-secondary mb-2 d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-search"></i>
+                                    <span>Visual Komparasi Kata (Hijau = Cocok, Kuning = Beda, Merah = Hilang, Biru = Tambahan):</span>
+                                </div>
+                                <div id="resDiffViewer" class="p-3 rounded-2 font-monospace small bg-white border" style="max-height: 200px; overflow-y: auto; line-height: 1.8;">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-semibold" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeAccuracyModal = null;
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function openAccuracyModal(docKey, filename) {
+    const modalEl = document.getElementById('accuracyModal');
+    if (!activeAccuracyModal) {
+        activeAccuracyModal = new bootstrap.Modal(modalEl);
+    }
+
+    document.getElementById('accuracyModalSubtitle').textContent = `Dokumen: ${filename}`;
+    document.getElementById('accLoadingSpinner').classList.remove('d-none');
+    document.getElementById('accTextContainer').classList.add('d-none');
+    document.getElementById('accResultsCard').classList.add('d-none');
+    document.getElementById('accFullTextarea').value = '';
+    document.getElementById('cmpOcrText').value = '';
+    document.getElementById('cmpRefText').value = '';
+
+    // Switch back to tab 1
+    const tab1Btn = document.getElementById('tab-extracted-btn');
+    if (tab1Btn) {
+        bootstrap.Tab.getOrCreateInstance(tab1Btn).show();
+    }
+
+    activeAccuracyModal.show();
+
+    fetch(`/documents/${encodeURIComponent(docKey)}/inspect-text`)
+        .then(res => {
+            if (!res.ok) throw new Error('Gagal mengambil teks dokumen.');
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('accLoadingSpinner').classList.add('d-none');
+            document.getElementById('accTextContainer').classList.remove('d-none');
+
+            const fullText = data.full_text || 'Tidak ada teks terdeteksi pada dokumen ini.';
+            document.getElementById('accFullTextarea').value = fullText;
+            document.getElementById('cmpOcrText').value = fullText;
+            document.getElementById('accTotalPages').textContent = data.page_count || 1;
+            document.getElementById('accCharCount').textContent = data.char_count || 0;
+            document.getElementById('accWordCount').textContent = data.word_count || 0;
+        })
+        .catch(err => {
+            document.getElementById('accLoadingSpinner').innerHTML = `
+                <div class="text-danger py-4">
+                    <i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>
+                    <span>${escapeHtml(err.message)}</span>
+                </div>
+            `;
+        });
+}
+
+function copyOcrText() {
+    const text = document.getElementById('accFullTextarea').value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        if (window.showToast) {
+            window.showToast('Teks OCR berhasil disalin ke clipboard.', 'success');
+        } else {
+            alert('Teks berhasil disalin ke clipboard.');
+        }
+    });
+}
+
+function pasteGroundTruth() {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById('cmpRefText').value = text;
+    }).catch(() => {
+        alert('Gunakan Ctrl+V untuk menempelkan teks.');
+    });
+}
+
+function calculateAccuracyMetrics() {
+    const ocrText = document.getElementById('cmpOcrText').value;
+    const refText = document.getElementById('cmpRefText').value;
+
+    if (!refText.trim()) {
+        alert('Mohon masukkan teks acuan asli (Ground Truth) terlebih dahulu.');
+        document.getElementById('cmpRefText').focus();
+        return;
+    }
+
+    const btn = document.getElementById('btnRunCalc');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghitung...';
+
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+    fetch('/documents/calculate-accuracy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            reference_text: refText,
+            ocr_text: ocrText
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-calculator me-1.5"></i>Hitung Akurasi (CER & WER)';
+
+        if (!data.success) {
+            alert(data.error || 'Terjadi kesalahan saat menghitung metrik.');
+            return;
+        }
+
+        const m = data.metrics;
+        document.getElementById('resCharAcc').textContent = `${m.character_accuracy}%`;
+        document.getElementById('resCer').textContent = `${m.cer}%`;
+        document.getElementById('resWordAcc').textContent = `${m.word_accuracy}%`;
+        document.getElementById('resWer').textContent = `${m.wer}%`;
+
+        document.getElementById('resN').textContent = m.total_reference_chars;
+        document.getElementById('resS').textContent = m.substitutions;
+        document.getElementById('resD').textContent = m.deletions;
+        document.getElementById('resI').textContent = m.insertions;
+
+        // Render Diff viewer
+        const viewer = document.getElementById('resDiffViewer');
+        viewer.innerHTML = '';
+
+        if (m.diff_tokens && m.diff_tokens.length > 0) {
+            m.diff_tokens.forEach(tok => {
+                if (tok.tag === 'equal') {
+                    viewer.innerHTML += `<span class="text-success">${escapeHtml(tok.text)} </span>`;
+                } else if (tok.tag === 'replace') {
+                    viewer.innerHTML += `<span class="badge bg-warning-subtle text-dark border me-1" title="Acuan: ${escapeHtml(tok.ref)}">${escapeHtml(tok.hyp)}</span>`;
+                } else if (tok.tag === 'delete') {
+                    viewer.innerHTML += `<span class="badge bg-danger-subtle text-danger text-decoration-line-through me-1">${escapeHtml(tok.text)}</span>`;
+                } else if (tok.tag === 'insert') {
+                    viewer.innerHTML += `<span class="badge bg-info-subtle text-primary me-1">+${escapeHtml(tok.text)}</span>`;
+                }
+            });
+        } else {
+            viewer.innerHTML = '<span class="text-muted">Tidak ada perbedaan kata. Teks 100% identik!</span>';
+        }
+
+        document.getElementById('accResultsCard').classList.remove('d-none');
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-calculator me-1.5"></i>Hitung Akurasi (CER & WER)';
+        alert('Gagal menghitung akurasi: ' + err.message);
+    });
+}
+</script>
 {% endblock %}
