@@ -66,5 +66,21 @@ def format_datetime_filter(value):
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print("\n" + "="*70)
+            print("❌ GAGAL MENGHUBUNGI SERVER DATABASE (MySQL / MariaDB):")
+            print(f"Detail error: {e}")
+            print("\n💡 PANDUAN PENYELESAIAN:")
+            print("1. Jika menggunakan Laragon:")
+            print("   - Buka aplikasi Laragon, lalu klik tombol 'Start All' (pastikan MySQL menyala hijau).")
+            print("2. Jika menggunakan XAMPP:")
+            print("   - Buka XAMPP Control Panel, lalu klik tombol 'Start' pada modul MySQL.")
+            print("3. Jika ingin menggunakan database lokal SQLite sebagai alternatif:")
+            print("   - Ubah baris DATABASE_URL di file .env menjadi:")
+            print("     DATABASE_URL=sqlite:///database/ocr_database.db")
+            print("="*70 + "\n")
+            raise SystemExit(1)
+
     app.run(debug=FLASK_DEBUG)
