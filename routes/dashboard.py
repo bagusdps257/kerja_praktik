@@ -42,7 +42,8 @@ def ambil_data_dashboard():
         "riwayat": riwayat,
         "recent_files": recent_files,
         "total_ukuran": total_ukuran,
-        "penyimpanan": info_penyimpanan
+        "penyimpanan": info_penyimpanan,
+        "progress": ambil_progress_ocr()
     }
 
 @dashboard_bp.route("/")

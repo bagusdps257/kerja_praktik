@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import threading
 from config.settings import LOG_PATH, BASE_DIR
 
 STATE_FILE_PATH = os.path.join(BASE_DIR, "logs", "ocr_runtime_state.json")
@@ -16,42 +17,75 @@ DEFAULT_STATE = {
     "target_subfolder": ""
 }
 
-
-def _read_state():
-    if not os.path.exists(STATE_FILE_PATH):
-        return DEFAULT_STATE.copy()
-    try:
-        with open(STATE_FILE_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return DEFAULT_STATE.copy()
-
-
+_state_lock = threading.RLock()
+_current_state = None
 _last_write_time = 0.0
 _write_interval = 0.5  # Batasi penulisan ke disk maksimal setiap 0.5 detik
 
-def _write_state(data, force=False):
+
+def _read_from_disk():
+    if not os.path.exists(STATE_FILE_PATH):
+        return DEFAULT_STATE.copy()
+    for _ in range(5):
+        try:
+            with open(STATE_FILE_PATH, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    data = json.loads(content)
+                    if isinstance(data, dict):
+                        merged = DEFAULT_STATE.copy()
+                        merged.update(data)
+                        return merged
+        except Exception:
+            time.sleep(0.05)
+    return DEFAULT_STATE.copy()
+
+
+def _get_state_locked():
+    global _current_state
+    if _current_state is None:
+        _current_state = _read_from_disk()
+    return _current_state
+
+
+def _write_to_disk(data, force=False):
     global _last_write_time
     sekarang = time.time()
-    
+
     # Jika tidak force dan belum mencapai interval waktu, lewati penulisan (Optimasi I/O)
     if not force and (sekarang - _last_write_time) < _write_interval:
         return
-        
+
     os.makedirs(os.path.dirname(STATE_FILE_PATH), exist_ok=True)
-    tmp_path = STATE_FILE_PATH + ".tmp"
+    tmp_path = f"{STATE_FILE_PATH}.{os.getpid()}.{threading.get_ident()}.tmp"
     try:
+        payload = json.dumps(data, indent=2)
         with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        for attempt in range(3):
+            f.write(payload)
+
+        for _ in range(5):
             try:
                 os.replace(tmp_path, STATE_FILE_PATH)
                 _last_write_time = time.time()
                 break
             except OSError:
                 time.sleep(0.05)
+        else:
+            # Fallback on Windows if os.replace encounters file lock contention
+            try:
+                with open(STATE_FILE_PATH, "w", encoding="utf-8") as f:
+                    f.write(payload)
+                _last_write_time = time.time()
+            except OSError:
+                pass
     except Exception:
         pass
+    finally:
+        if os.path.exists(tmp_path):
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
 
 
 def melepaskan_signal_stop():
@@ -67,7 +101,8 @@ def melepaskan_signal_stop():
 # =====================================================
 
 def ambil_progress():
-    return _read_state()
+    with _state_lock:
+        return _get_state_locked().copy()
 
 
 # =====================================================
@@ -75,8 +110,11 @@ def ambil_progress():
 # =====================================================
 
 def reset_progress():
-    _write_state(DEFAULT_STATE.copy(), force=True)
     melepaskan_signal_stop()
+    with _state_lock:
+        global _current_state
+        _current_state = DEFAULT_STATE.copy()
+        _write_to_disk(_current_state, force=True)
 
 
 # =====================================================
@@ -85,74 +123,93 @@ def reset_progress():
 
 def mulai(total_file, target_subfolder=""):
     melepaskan_signal_stop()
-    state = {
-        "status": "RUNNING",
-        "persen": 0,
-        "selesai": 0,
-        "total": total_file,
-        "current_file": "-",
-        "queue_paused": False,
-        "target_subfolder": target_subfolder or ""
-    }
-    _write_state(state, force=True)
+    with _state_lock:
+        state = _get_state_locked()
+        state["status"] = "RUNNING"
+        state["persen"] = 0
+        state["selesai"] = 0
+        state["total"] = max(0, int(total_file or 0))
+        state["current_file"] = "-"
+        state["queue_paused"] = False
+        state["target_subfolder"] = target_subfolder or ""
+        _write_to_disk(state, force=True)
 
 
 # =====================================================
 # UPDATE
+# =====================================================
+
 def update_file(nama_file, force=False):
-    state = _read_state()
-    state["current_file"] = nama_file
-    _write_state(state, force=force)
+    with _state_lock:
+        state = _get_state_locked()
+        state["current_file"] = str(nama_file or "-")
+        _write_to_disk(state, force=force)
 
 
 def update_progress(jumlah_selesai, force=True):
-    state = _read_state()
-    state["selesai"] = jumlah_selesai
-    total = state.get("total", 0)
-    if total > 0:
-        if jumlah_selesai < total:
-            state["persen"] = min(99, int(jumlah_selesai / total * 100))
-        else:
-            state["persen"] = 100
-    _write_state(state, force=force)
+    with _state_lock:
+        state = _get_state_locked()
+        state["selesai"] = max(0, int(jumlah_selesai or 0))
+        total = state.get("total", 0)
+        if total > 0:
+            if state["selesai"] < total:
+                state["persen"] = min(99, int(state["selesai"] / total * 100))
+            else:
+                state["persen"] = 100
+        _write_to_disk(state, force=force)
 
 
 def update_file_and_progress(nama_file, jumlah_selesai, force=True):
-    state = _read_state()
-    state["current_file"] = nama_file
-    state["selesai"] = jumlah_selesai
-    total = state.get("total", 0)
-    if total > 0:
-        if jumlah_selesai < total:
-            state["persen"] = min(99, int(jumlah_selesai / total * 100))
-        else:
-            state["persen"] = 100
-    _write_state(state, force=force)
+    with _state_lock:
+        state = _get_state_locked()
+        state["current_file"] = str(nama_file or "-")
+        state["selesai"] = max(0, int(jumlah_selesai or 0))
+        total = state.get("total", 0)
+        if total > 0:
+            if state["selesai"] < total:
+                state["persen"] = min(99, int(state["selesai"] / total * 100))
+            else:
+                state["persen"] = 100
+        _write_to_disk(state, force=force)
 
 
 # =====================================================
 # STATUS
 # =====================================================
 
-def selesai():
-    state = _read_state()
-    state["status"] = "FINISHED"
-    state["persen"] = 100
-    # Ensure selesai matches total so no phantom "remaining" files appear
-    state["selesai"] = state.get("total", state.get("selesai", 0))
-    _write_state(state, force=True)
+def selesai(jumlah_selesai=None):
+    with _state_lock:
+        state = _get_state_locked()
+        state["status"] = "FINISHED"
+        state["persen"] = 100
+
+        if jumlah_selesai is not None:
+            state["selesai"] = max(0, int(jumlah_selesai))
+            if state.get("total", 0) < state["selesai"]:
+                state["total"] = state["selesai"]
+        else:
+            total = state.get("total", 0)
+            cur_selesai = state.get("selesai", 0)
+            if total > 0:
+                state["selesai"] = total
+            elif cur_selesai > 0:
+                state["total"] = cur_selesai
+
+        _write_to_disk(state, force=True)
 
 
 def berhenti():
-    state = _read_state()
-    state["status"] = "STOPPED"
-    _write_state(state, force=True)
+    with _state_lock:
+        state = _get_state_locked()
+        state["status"] = "STOPPED"
+        _write_to_disk(state, force=True)
 
 
 def error():
-    state = _read_state()
-    state["status"] = "ERROR"
-    _write_state(state, force=True)
+    with _state_lock:
+        state = _get_state_locked()
+        state["status"] = "ERROR"
+        _write_to_disk(state, force=True)
 
 
 # =====================================================
@@ -160,15 +217,17 @@ def error():
 # =====================================================
 
 def set_queue_paused(state: bool):
-    current = _read_state()
-    current["queue_paused"] = bool(state)
-    _write_state(current, force=True)
-    return bool(state)
+    with _state_lock:
+        cur = _get_state_locked()
+        cur["queue_paused"] = bool(state)
+        _write_to_disk(cur, force=True)
+        return bool(state)
 
 
 def is_queue_paused():
-    state = _read_state()
-    return bool(state.get("queue_paused", False))
+    with _state_lock:
+        cur = _get_state_locked()
+        return bool(cur.get("queue_paused", False))
 
 
 def hentikan_proses_ocr():
@@ -180,4 +239,3 @@ def hentikan_proses_ocr():
 
 def is_stop_requested():
     return os.path.exists(SIGNAL_STOP_PATH)
-

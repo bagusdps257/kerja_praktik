@@ -573,13 +573,16 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, 
         generate_searchable_pdf = True
         max_retry = settings.get("max_retry", 3)
 
+        input_dir = os.path.normpath(input_dir)
+        output_dir = os.path.normpath(output_dir)
+
         if not validasi_awal(input_dir, output_dir, tesseract_cmd):
             return
 
         # LANGKAH 4: Tentukan direktori pemindaian (subfolder target vs seluruh input)
         target_subfolder = (target_subfolder or "").strip().strip('/\\')
         if target_subfolder:
-            scan_dir = os.path.join(input_dir, target_subfolder)
+            scan_dir = os.path.normpath(os.path.join(input_dir, target_subfolder))
             if not os.path.isdir(scan_dir):
                 catat_log(f"❌ Error: Subfolder target '{target_subfolder}' tidak ditemukan di {input_dir}")
                 error()
@@ -645,7 +648,7 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, 
                         is_output_up_to_date = False
 
                 if is_output_up_to_date and not overwrite:
-                    update_file(nama_file_only)
+                    update_file(nama_file_only, force=False)
                     catat_log(f"SKIP: {document_key}")
 
                     metadata = sedot_metadata(jalur_awal)
@@ -664,7 +667,7 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, 
                     )
 
                     file_diproses += 1
-                    update_progress(file_diproses)
+                    update_progress(file_diproses, force=False)
                     continue
 
                 # Kumpulkan task yang akan diproses oleh worker
@@ -790,5 +793,5 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, 
             berhenti()
             catat_log("OCR stopped by user.")
         else:
-            selesai()
+            selesai(jumlah_selesai=file_diproses)
             catat_log(f"FINISHED: {file_diproses} files processed.")

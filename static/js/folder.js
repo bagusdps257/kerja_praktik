@@ -225,6 +225,18 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('ocr_target_subfolder', targetVal);
 
             const formData = new FormData(formJalankan);
+            // Explicitly set target_subfolder so it is never dropped even if select element was disabled
+            formData.set('target_subfolder', targetVal);
+
+            const inputDirEl = document.getElementById('input_dir');
+            const outputDirEl = document.getElementById('output_dir');
+            if (inputDirEl && inputDirEl.value.trim()) {
+                formData.set('input_dir', inputDirEl.value.trim());
+            }
+            if (outputDirEl && outputDirEl.value.trim()) {
+                formData.set('output_dir', outputDirEl.value.trim());
+            }
+
             const submitBtn = formJalankan.querySelector('button[type="submit"]');
 
             if (submitBtn) {

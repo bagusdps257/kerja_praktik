@@ -146,7 +146,7 @@
         <span id="progress-persen"
               class="fw-bold"
               style="color:#0f3c68;">
-            0%
+            {{ progress.persen if progress and progress.persen is defined else 0 }}%
         </span>
 
     </div>
@@ -154,9 +154,9 @@
     <div class="progress analytics-progress mb-3">
 
         <div id="progress-bar"
-             class="progress-bar progress-bar-striped progress-bar-animated analytics-progress-bar-gradient"
-             style="width:0%">
-            0%
+             class="progress-bar progress-bar-striped analytics-progress-bar-gradient {% if progress and progress.status == 'RUNNING' %}progress-bar-animated{% elif progress and progress.status == 'FINISHED' %}bg-success{% endif %}"
+             style="width:{{ progress.persen if progress and progress.persen is defined else 0 }}%">
+            {{ progress.persen if progress and progress.persen is defined else 0 }}%
         </div>
 
     </div>
@@ -166,13 +166,15 @@
         <div id="progress-status"
              class="small text-muted">
             Status :
-            <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">IDLE</span>
+            <span class="badge {% if progress and progress.status == 'RUNNING' %}badge-soft-primary{% elif progress and progress.status == 'FINISHED' %}badge-soft-success{% elif progress and progress.status == 'STOPPED' %}badge-soft-warning{% elif progress and progress.status == 'ERROR' %}badge-soft-danger{% else %}badge-soft-secondary{% endif %} px-3 py-1.5 rounded-pill fw-bold text-uppercase">
+                {{ progress.status if progress and progress.status else 'IDLE' }}
+            </span>
         </div>
 
         <div class="small text-muted fw-medium">
-            <span id="progress-selesai" class="fw-bold text-dark">0</span>
+            <span id="progress-selesai" class="fw-bold text-dark">{{ progress.selesai if progress and progress.selesai is defined else 0 }}</span>
             /
-            <span id="progress-total" class="fw-bold text-dark">0</span>
+            <span id="progress-total" class="fw-bold text-dark">{{ progress.total if progress and progress.total is defined else 0 }}</span>
             file
         </div>
 

@@ -81,6 +81,7 @@ def test_core_engine_target_subfolder_invalid(tmp_path, app):
     assert prog["status"] == "ERROR"
 
 def test_jalankan_endpoint_with_ajax_target_subfolder(client, test_user):
+    from routes import ocr
     client.post("/login", data={
         "username": "admin_test",
         "password": "password123"
@@ -94,4 +95,41 @@ def test_jalankan_endpoint_with_ajax_target_subfolder(client, test_user):
     data = res.get_json()
     assert data["status"] == "success"
     assert data["target_subfolder"] == "input 17"
+
+    if ocr.active_ocr_thread is not None:
+        ocr.active_ocr_thread.join(timeout=3.0)
+
+def test_core_engine_target_subfolder_success_progress(tmp_path, app, monkeypatch):
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    sub_dir = input_dir / "sub_active"
+    sub_dir.mkdir(parents=True)
+
+    # Create dummy pdf files
+    for i in range(1, 4):
+        (sub_dir / f"dokumen_{i}.pdf").write_bytes(b"%PDF-1.4 dummy")
+
+    # Mock extraction so tesseract is not strictly needed for progress testing
+    import fitz
+    def mock_ekstrak(*args, **kwargs):
+        doc = fitz.open()
+        doc.new_page()
+        return doc
+
+    monkeypatch.setattr(core_engine, "ekstrak_dokumen", mock_ekstrak)
+
+    core_engine.jalankan_sistem_ocr(
+        str(input_dir),
+        str(output_dir),
+        flask_app=app,
+        target_subfolder="sub_active"
+    )
+
+    prog = core_engine.ambil_progress()
+    assert prog["status"] == "FINISHED"
+    assert prog["total"] == 3
+    assert prog["selesai"] == 3
+    assert prog["persen"] == 100
+    assert prog["target_subfolder"] == "sub_active"
+
 

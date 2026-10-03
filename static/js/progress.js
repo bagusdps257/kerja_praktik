@@ -23,6 +23,27 @@ function updateProgress() {
         if (progressBar) {
             progressBar.style.width = pct + "%";
             progressBar.textContent = pct + "%";
+
+            if (progress.status === "FINISHED") {
+                progressBar.classList.remove("progress-bar-animated");
+                progressBar.classList.add("bg-success");
+                progressBar.classList.remove("analytics-progress-bar-gradient", "bg-danger", "bg-warning");
+            } else if (progress.status === "RUNNING") {
+                progressBar.classList.add("progress-bar-animated");
+                progressBar.classList.add("analytics-progress-bar-gradient");
+                progressBar.classList.remove("bg-success", "bg-danger", "bg-warning");
+            } else if (progress.status === "ERROR") {
+                progressBar.classList.remove("progress-bar-animated");
+                progressBar.classList.add("bg-danger");
+                progressBar.classList.remove("analytics-progress-bar-gradient", "bg-success", "bg-warning");
+            } else if (progress.status === "STOPPED") {
+                progressBar.classList.remove("progress-bar-animated");
+                progressBar.classList.add("bg-warning");
+                progressBar.classList.remove("analytics-progress-bar-gradient", "bg-success", "bg-danger");
+            } else {
+                progressBar.classList.remove("progress-bar-animated", "bg-success", "bg-danger", "bg-warning");
+                progressBar.classList.add("analytics-progress-bar-gradient");
+            }
         }
 
         if (progressPersen) {
@@ -54,24 +75,41 @@ function updateProgress() {
                 'Status : <span class="badge ' + badgeClass + ' px-3 py-1.5 rounded-pill fw-bold text-uppercase">' + safeStatus + '</span>';
         }
 
-        // Sinkronisasi status dropdown Target Subfolder saat proses berjalan
+        // Sinkronisasi status tombol dan dropdown Target Subfolder saat proses berjalan
+        const formJalankan = document.getElementById("form-jalankan");
+        const submitBtn = formJalankan ? formJalankan.querySelector('button[type="submit"]') : null;
+        const btnStop = document.getElementById("btn-stop");
         const selectTarget = document.getElementById("target_subfolder");
         const btnScan = document.getElementById("btn-scan-subfolders");
-        if (selectTarget) {
-            if (progress.status === "RUNNING") {
-                selectTarget.disabled = true;
-                if (btnScan) btnScan.disabled = true;
 
+        if (progress.status === "RUNNING") {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
+            if (btnStop) {
+                btnStop.disabled = false;
+            }
+            if (selectTarget) {
+                selectTarget.disabled = true;
                 if (progress.target_subfolder && selectTarget.value !== progress.target_subfolder) {
                     selectTarget.value = progress.target_subfolder;
                     if (typeof perbaruiStatusCakupan === 'function') {
                         perbaruiStatusCakupan(progress.target_subfolder, true);
                     }
                 }
-            } else {
-                selectTarget.disabled = false;
-                if (btnScan) btnScan.disabled = false;
             }
+            if (btnScan) btnScan.disabled = true;
+        } else {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+            if (btnStop) {
+                btnStop.disabled = (progress.status !== "RUNNING");
+            }
+            if (selectTarget) {
+                selectTarget.disabled = false;
+            }
+            if (btnScan) btnScan.disabled = false;
         }
     })
     .catch(err => {
