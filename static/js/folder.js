@@ -115,3 +115,54 @@ document.getElementById('explorerBtnSelect')?.addEventListener('click', () => {
 document.getElementById('form-folder')?.addEventListener('submit', (e) => {
     e.preventDefault();
 });
+
+// ==============================================================================
+// TARGET SUBFOLDER SCOPE LOADER
+// ==============================================================================
+function muatDaftarSubfolder() {
+    const selectEl = document.getElementById('target_subfolder');
+    if (!selectEl) return;
+
+    const inputDirInput = document.getElementById('input_dir');
+    const inputDir = inputDirInput ? inputDirInput.value.trim() : '';
+    const currentVal = selectEl.value;
+
+    const btnScan = document.getElementById('btn-scan-subfolders');
+    if (btnScan) {
+        btnScan.disabled = true;
+        const icon = btnScan.querySelector('i');
+        if (icon) icon.className = 'bi bi-arrow-clockwise spinner-border spinner-border-sm text-primary';
+    }
+
+    fetch(`/api/subfolders?input_dir=${encodeURIComponent(inputDir)}&ts=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+            selectEl.innerHTML = '<option value="">Seluruh Direktori Input (Semua Subfolder) — Default</option>';
+
+            if (data.status === 'success' && data.subfolders && data.subfolders.length > 0) {
+                data.subfolders.forEach(sf => {
+                    const opt = document.createElement('option');
+                    opt.value = sf.name;
+                    opt.textContent = `Subfolder: ${sf.name} (${sf.file_count} berkas)`;
+                    if (sf.name === currentVal) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error loading subfolders:', err);
+        })
+        .finally(() => {
+            if (btnScan) {
+                btnScan.disabled = false;
+                const icon = btnScan.querySelector('i');
+                if (icon) icon.className = 'bi bi-arrow-clockwise text-primary';
+            }
+        });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    muatDaftarSubfolder();
+});

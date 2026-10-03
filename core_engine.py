@@ -534,20 +534,21 @@ from flask import has_app_context
 # ==============================================================================
 # 8. ORCHESTRATOR UTAMA SISTEM OCR (ENTRY POINT PEMROSESAN)
 # ==============================================================================
-def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None):
+def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, target_subfolder=None):
     """
     [ORCHESTRATOR UTAMA SISTEM OCR]
     Alur eksekusi keseluruhan:
     LANGKAH 1: Inisialisasi context Flask & database.
     LANGKAH 2: Validasi folder & Tesseract OCR.
     LANGKAH 3: Membaca pengaturan konfigurasi (bahasa OCR, DPI, max retry, dll).
-    LANGKAH 4: Menghitung total dokumen dan menandai status runtime 'RUNNING'.
-    LANGKAH 5: Memindai folder input (os.walk) & membuat folder output mirror.
-    LANGKAH 6: Pengecekan file yang sudah ada (SKIP jika overwrite=False).
-    LANGKAH 7: Eksekusi batch paralel menggunakan ProcessPoolExecutor.
-    LANGKAH 8: Penanganan kontrol Stop (berhenti) atau Pause (jeda antrean).
-    LANGKAH 9: Mencatat log, menyimpan riwayat ke DB, dan mengupdate progress UI per file.
-    LANGKAH 10: Finalisasi status ('FINISHED' atau 'STOPPED').
+    LANGKAH 4: Menentukan direktori pemindaian (seluruh input atau subfolder spesifik).
+    LANGKAH 5: Menghitung total dokumen dan menandai status runtime 'RUNNING'.
+    LANGKAH 6: Memindai folder input (os.walk) & membuat folder output mirror.
+    LANGKAH 7: Pengecekan file yang sudah ada (SKIP jika overwrite=False).
+    LANGKAH 8: Eksekusi batch paralel menggunakan ProcessPoolExecutor.
+    LANGKAH 9: Penanganan kontrol Stop (berhenti) atau Pause (jeda antrean).
+    LANGKAH 10: Mencatat log, menyimpan riwayat ke DB, dan mengupdate progress UI per file.
+    LANGKAH 11: Finalisasi status ('FINISHED' atau 'STOPPED').
     """
     # LANGKAH 1: Setup Flask App Context untuk akses database di background thread
     if flask_app:
@@ -575,11 +576,23 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None):
         if not validasi_awal(input_dir, output_dir, tesseract_cmd):
             return
 
-        # LANGKAH 4: Hitung total dokumen & mulai progress tracking
-        total_dokumen = hitung_total_dokumen(input_dir)
+        # LANGKAH 4: Tentukan direktori pemindaian (subfolder target vs seluruh input)
+        target_subfolder = (target_subfolder or "").strip().strip('/\\')
+        if target_subfolder:
+            scan_dir = os.path.join(input_dir, target_subfolder)
+            if not os.path.isdir(scan_dir):
+                catat_log(f"❌ Error: Subfolder target '{target_subfolder}' tidak ditemukan di {input_dir}")
+                error()
+                return
+            catat_log(f"🎯 Mode Target Aktif: Memproses khusus subfolder '{target_subfolder}'")
+        else:
+            scan_dir = input_dir
+
+        # LANGKAH 5: Hitung total dokumen & mulai progress tracking
+        total_dokumen = hitung_total_dokumen(scan_dir)
         mulai(total_dokumen)
 
-        catat_log("--- Memulai pemrosesan Searchable PDF ---")
+        catat_log(f"--- Memulai pemrosesan Searchable PDF ({total_dokumen} berkas terdeteksi) ---")
 
         file_diproses = 0
         dihentikan_paksa = False
@@ -588,8 +601,8 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None):
         max_workers = max(1, (os.cpu_count() or 2) - 1)
         tasks_to_run = []
 
-        # LANGKAH 5: Pindai seluruh file di direktori input
-        for root, _, files in os.walk(input_dir):
+        # LANGKAH 6: Pindai file pada direktori yang ditargetkan
+        for root, _, files in os.walk(scan_dir):
             if is_stop_requested():
                 dihentikan_paksa = True
                 break

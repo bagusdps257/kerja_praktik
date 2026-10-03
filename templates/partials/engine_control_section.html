@@ -78,41 +78,64 @@
 
     <hr class="analytics-divider my-4">
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <!-- Execution Form with Subfolder Target Scope -->
+    <form action="/jalankan" method="POST" id="form-jalankan" class="mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <div class="d-flex gap-2">
+        <!-- Target Subfolder Selector -->
+        <div class="mb-3 p-3 rounded-2 border" style="background: #f8fafc;">
+            <label class="form-label small text-uppercase text-muted fw-bold mb-1.5 d-flex align-items-center justify-content-between" style="letter-spacing:.04em; font-size:.74rem;">
+                <span><i class="bi bi-diagram-3 me-1.5" style="color: #0f3c68;"></i>Cakupan Pemrosesan (Target Subfolder)</span>
+                <span class="badge border px-2 py-0.5 rounded-1 text-muted fw-normal" style="background:#ffffff; font-size: 0.7rem;">Opsional</span>
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-folder2 text-secondary"></i>
+                </span>
+                <select class="form-select" id="target_subfolder" name="target_subfolder">
+                    <option value="">Seluruh Direktori Input (Semua Subfolder) — Default</option>
+                </select>
+                <button class="btn btn-sm btn-white border shadow-sm text-secondary rounded-2 px-3 my-1 ms-1 d-flex align-items-center gap-1"
+                        type="button"
+                        id="btn-scan-subfolders"
+                        onclick="muatDaftarSubfolder()"
+                        title="Pindai ulang daftar subfolder">
+                    <i class="bi bi-arrow-clockwise text-primary"></i>
+                    <span>Pindai Ulang</span>
+                </button>
+            </div>
+            <div class="form-text small text-muted mt-1.5" style="font-size: 0.74rem;">
+                Pilih subfolder tertentu (misalnya: <strong>input 17</strong>) untuk membatasi pemrosesan hanya pada berkas di subfolder tersebut tanpa memeriksa seluruh folder lainnya.
+            </div>
+        </div>
 
-            <form action="/jalankan" method="POST" class="mb-0">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary px-4 py-2.5 rounded-2 d-flex align-items-center fw-semibold">
                     <i class="bi bi-play-circle-fill me-2 fs-5"></i>
                     <span>Mulai Pemrosesan Berkas</span>
                 </button>
-            </form>
-
-            <button type="button"
-                    id="btn-stop"
-                    class="btn btn-danger px-4 py-2.5 rounded-2 d-flex align-items-center fw-semibold"
-                    data-bs-toggle="modal" data-bs-target="#stopProcessModal">
-                <i class="bi bi-stop-circle-fill me-2 fs-5"></i>
-                <span>Hentikan Proses</span>
-            </button>
-
-        </div>
-
-        <div class="text-md-end bg-light p-2.5 px-3 rounded-2 border">
-            <div class="small text-muted fw-bold text-uppercase mb-0.5" style="font-size:.68rem; letter-spacing:.05em;">
-                Berkas Aktif Diproses
+                <button type="button"
+                        id="btn-stop"
+                        class="btn btn-danger px-4 py-2.5 rounded-2 d-flex align-items-center fw-semibold"
+                        data-bs-toggle="modal" data-bs-target="#stopProcessModal">
+                    <i class="bi bi-stop-circle-fill me-2 fs-5"></i>
+                    <span>Hentikan Proses</span>
+                </button>
             </div>
 
-            <div id="progress-file"
-                 class="fw-bold text-truncate"
-                 style="max-width: 240px; color:#0f3c68; font-size:.88rem;">
-                -
+            <div class="text-md-end bg-light p-2.5 px-3 rounded-2 border">
+                <div class="small text-muted fw-bold text-uppercase mb-0.5" style="font-size:.68rem; letter-spacing:.05em;">
+                    Berkas Aktif Diproses
+                </div>
+                <div id="progress-file"
+                     class="fw-bold text-truncate"
+                     style="max-width: 240px; color:#0f3c68; font-size:.88rem;">
+                    -
+                </div>
             </div>
         </div>
-
-    </div>
+    </form>
 
     <div class="d-flex justify-content-between align-items-center mb-2">
 

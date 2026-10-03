@@ -57,6 +57,7 @@ def jalankan():
     # 4. Ambil dan perbarui input/output path jika ada perubahan dari form UI
     input_baru = request.form.get("input_dir")
     output_baru = request.form.get("output_dir")
+    target_subfolder = request.form.get("target_subfolder", "").strip()
 
     if input_baru and output_baru:
         db_model.update_folder(input_baru, output_baru)
@@ -67,7 +68,11 @@ def jalankan():
     active_ocr_thread = threading.Thread(
         target=core_engine.jalankan_sistem_ocr,
         args=(db_model.input_dir, db_model.output_dir),
-        kwargs={"overwrite": False, "flask_app": app}
+        kwargs={
+            "overwrite": False,
+            "flask_app": app,
+            "target_subfolder": target_subfolder if target_subfolder else None
+        }
     )
     active_ocr_thread.daemon = True
     active_ocr_thread.start()

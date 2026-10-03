@@ -200,4 +200,26 @@ def api_check_folder():
     except Exception as e:
         return jsonify({"valid": False, "exists": True, "message": f"Akses folder terbatas: {str(e)}"})
 
+
+@folder_bp.route("/api/subfolders")
+@login_required
+def api_subfolders():
+    from services.storage_service import get_subfolders_info
+    req_input = request.args.get("input_dir", "").strip() or db_model.input_dir
+
+    if not req_input or not os.path.isdir(req_input):
+        return jsonify({
+            "status": "error",
+            "message": "Direktori input tidak valid atau belum diset.",
+            "subfolders": []
+        }), 400
+
+    subfolders = get_subfolders_info(req_input)
+    return jsonify({
+        "status": "success",
+        "input_dir": req_input,
+        "subfolders": subfolders
+    })
+
+
 

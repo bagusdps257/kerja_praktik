@@ -61,3 +61,35 @@ def hitung_total_ukuran_folder(folder_path):
 
     else:
         return f"{total_size / 1024:.2f} KB"
+
+
+def get_subfolders_info(input_dir):
+    """
+    Memindai seluruh subfolder langsung (immediate subdirectories) di dalam input_dir
+    beserta jumlah dokumen valid (.pdf, .png, .jpg, dll) di dalamnya.
+    """
+    subfolders = []
+    if not input_dir or not os.path.isdir(input_dir):
+        return subfolders
+
+    valid_exts = ('.pdf', '.png', '.jpg', '.jpeg', '.tiff', '.tif', '.bmp', '.webp')
+
+    try:
+        for item in os.listdir(input_dir):
+            item_path = os.path.join(input_dir, item)
+            if os.path.isdir(item_path) and not item.startswith('.'):
+                doc_count = 0
+                for root, _, files in os.walk(item_path):
+                    for f in files:
+                        if f.lower().endswith(valid_exts):
+                            doc_count += 1
+                subfolders.append({
+                    "name": item,
+                    "path": item_path,
+                    "file_count": doc_count
+                })
+        subfolders.sort(key=lambda x: x["name"].lower())
+    except Exception as e:
+        print(f"Error scanning subfolders: {e}")
+
+    return subfolders
