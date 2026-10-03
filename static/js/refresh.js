@@ -1,22 +1,45 @@
-// ===============================
-// AUTO REFRESH DASHBOARD & STATS
-// ===============================
+// ==============================================================================
+// AUTO REFRESH DASHBOARD & REAL-TIME STATS - PT JAWA SATU POWER
+// ==============================================================================
 
 let timerRefresh = null;
 let refreshPaused = false;
 let distributionChartInstance = null;
 
-const refreshStatus = document.getElementById("refresh-status");
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function getRefreshStatusElement() {
+    return document.getElementById("refresh-status");
+}
 
 function setRefreshStatus(active) {
-    if (!refreshStatus) return;
+    const el = getRefreshStatusElement();
+    if (!el) return;
 
     if (active) {
-        refreshStatus.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Auto-refresh Active';
-        refreshStatus.className = 'text-success fw-bold';
+        el.innerHTML = '<i class="bi bi-arrow-repeat me-1 text-success"></i>Auto-refresh Aktif';
+        el.className = 'badge border px-3 py-2 rounded-2 fw-semibold';
+        el.style.background = '#ffffff';
+        el.style.color = '#166534';
+        el.style.borderColor = '#bbf7d0';
+        el.style.cursor = 'pointer';
+        el.title = 'Auto-refresh aktif setiap 2 detik. Klik untuk menjeda.';
     } else {
-        refreshStatus.innerHTML = '<i class="bi bi-pause-circle me-1"></i> Paused';
-        refreshStatus.className = 'text-warning fw-bold';
+        el.innerHTML = '<i class="bi bi-pause-circle me-1 text-warning"></i>Auto-refresh Dijeda';
+        el.className = 'badge border px-3 py-2 rounded-2 fw-semibold';
+        el.style.background = '#ffffff';
+        el.style.color = '#854d0e';
+        el.style.borderColor = '#fef08a';
+        el.style.cursor = 'pointer';
+        el.title = 'Auto-refresh sedang dijeda. Klik untuk melanjutkan.';
     }
 }
 
@@ -29,22 +52,29 @@ function initDistributionChart(success, pending, failed) {
         return;
     }
 
-    const ctx = canvas.getContext('2d');
+    // Defensive check: reuse existing chart instance if canvas is already tracked
+    if (!distributionChartInstance) {
+        const existingChart = Chart.getChart(canvas);
+        if (existingChart) {
+            distributionChartInstance = existingChart;
+        }
+    }
 
     if (distributionChartInstance) {
         distributionChartInstance.data.datasets[0].data = [success, pending, failed];
         distributionChartInstance.update();
     } else {
+        const ctx = canvas.getContext('2d');
         distributionChartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Success', 'Pending', 'Failed'],
+                labels: ['Selesai', 'Antrean', 'Gagal'],
                 datasets: [{
                     data: [success, pending, failed],
                     backgroundColor: [
-                        '#059669', // Soft Mint (Processed / Success)
-                        '#7c3aed', // Royal Violet (Pending / Waiting)
-                        '#e11d48'  // Soft Rose Coral (Failed)
+                        '#166534', // Forest Green (Success)
+                        '#475569', // Slate Gray (Pending / Queue)
+                        '#991b1b'  // Crimson Brick (Failed)
                     ],
                     borderWidth: 0,
                     hoverOffset: 4
@@ -87,7 +117,7 @@ function renderRecentFiles(recentFiles) {
             <tr>
                 <td colspan="4" class="text-center py-5 text-muted">
                     <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
-                    <div class="fw-semibold">No recent OCR activity available.</div>
+                    <div class="fw-semibold">Belum ada aktivitas OCR terbaru.</div>
                 </td>
             </tr>
         `;
@@ -99,42 +129,48 @@ function renderRecentFiles(recentFiles) {
 
         if (file.status === 'SUKSES') {
             badge = `
-                <span class="badge badge-soft-success px-3 py-1.5 rounded-pill fw-bold">
-                    <i class="bi bi-check-circle-fill me-1"></i>
-                    Success
+                <span class="badge badge-soft-success px-2.5 py-1 rounded-1 fw-semibold">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Selesai
                 </span>
             `;
         } else if (file.status === 'SKIP') {
             badge = `
-                <span class="badge badge-soft-secondary px-3 py-1.5 rounded-pill fw-bold">
-                    <i class="bi bi-skip-forward-fill me-1"></i>
-                    Skipped
+                <span class="badge badge-soft-secondary px-2.5 py-1 rounded-1 fw-semibold">
+                    <i class="bi bi-dash-circle me-1"></i>
+                    Dilewati
                 </span>
             `;
         } else {
             badge = `
-                <span class="badge badge-soft-danger px-3 py-1.5 rounded-pill fw-bold">
-                    <i class="bi bi-x-circle-fill me-1"></i>
-                    Failed
+                <span class="badge badge-soft-danger px-2.5 py-1 rounded-1 fw-semibold">
+                    <i class="bi bi-exclamation-octagon me-1"></i>
+                    Gagal
                 </span>
             `;
         }
 
+        const displayTime = file.updated_waktu || file.waktu || '-';
+        const hasUpdate = file.updated_waktu && file.waktu && file.updated_waktu !== file.waktu;
+        const safeFileName = escapeHtml(file.nama_file || '-');
+        const rawFileName = (file.nama_file || '').replace(/'/g, "\\'");
+        const safeKeterangan = escapeHtml(file.keterangan || '-');
+
         return `
             <tr class="analytics-user-row">
                 <td class="text-muted small fw-medium">
-                    ${file.waktu}
-                    ${file.updated_waktu && file.updated_waktu !== file.waktu ? `<div class="text-muted" style="font-size: 0.72rem;" title="Terakhir Diproses"><i class="bi bi-arrow-repeat me-1 text-primary"></i>${file.updated_waktu}</div>` : ''}
+                    ${escapeHtml(displayTime)}
+                    ${hasUpdate ? `<div class="text-muted" style="font-size: 0.72rem;" title="Terakhir Diproses"><i class="bi bi-arrow-repeat me-1 text-primary"></i>${escapeHtml(file.updated_waktu)}</div>` : ''}
                 </td>
                 <td>
                     <div class="d-flex align-items-center gap-2.5">
-                        <div class="d-flex align-items-center justify-content-center rounded-3" style="background: rgba(2, 132, 199, 0.08); color: #0284c7; width: 34px; height: 34px;">
+                        <div class="d-flex align-items-center justify-content-center rounded-2" style="background: rgba(15, 60, 104, 0.08); color: #0f3c68; width: 34px; height: 34px;">
                             <i class="bi bi-file-earmark-pdf fs-6"></i>
                         </div>
                         <div class="fw-semibold text-dark text-break" style="font-size: .9rem;">
-                            ${file.nama_file}
+                            ${safeFileName}
                         </div>
-                        <button type="button" class="btn-copy" onclick="copyToClipboard(this, '${escapeHtml(file.nama_file)}', 'Nama file')" title="Salin nama file">
+                        <button type="button" class="btn-copy" onclick="copyToClipboard(this, '${rawFileName}', 'Nama file')" title="Salin nama file">
                             <i class="bi bi-copy"></i>
                         </button>
                     </div>
@@ -143,7 +179,7 @@ function renderRecentFiles(recentFiles) {
                     ${badge}
                 </td>
                 <td class="text-muted small fw-medium">
-                    ${file.keterangan || '-'}
+                    ${safeKeterangan}
                 </td>
             </tr>
         `;
@@ -151,40 +187,45 @@ function renderRecentFiles(recentFiles) {
 }
 
 function updateDashboard() {
-    fetch('/api/status?ts=' + new Date().getTime(), {
+    fetch('/api/status?ts=' + Date.now(), {
         cache: 'no-store'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok: ' + response.status);
+        return response.json();
+    })
     .then(data => {
-        // Update recent files
-        renderRecentFiles(data.recent_files);
+        // 1. Update recent files
+        if (data.recent_files !== undefined) {
+            renderRecentFiles(data.recent_files);
+        }
 
-        // Update KPI cards
+        // 2. Update KPI cards
         if (data.stats) {
             const elTotalInput = document.getElementById('stat-total-input');
             const elSuccess = document.getElementById('stat-success');
             const elFailed = document.getElementById('stat-failed');
             const elPending = document.getElementById('stat-pending');
 
-            if (elTotalInput) elTotalInput.textContent = data.stats.total_input;
-            if (elSuccess) elSuccess.textContent = data.stats.total_output;
-            if (elFailed) elFailed.textContent = data.stats.total_gagal;
-            if (elPending) elPending.textContent = data.stats.pending;
+            if (elTotalInput && data.stats.total_input !== undefined) elTotalInput.textContent = data.stats.total_input;
+            if (elSuccess && data.stats.total_output !== undefined) elSuccess.textContent = data.stats.total_output;
+            if (elFailed && data.stats.total_gagal !== undefined) elFailed.textContent = data.stats.total_gagal;
+            if (elPending && data.stats.pending !== undefined) elPending.textContent = data.stats.pending;
 
-            // Update Donut Chart
+            // 3. Update Donut Chart
             const successCount = data.stats.total_output || 0;
             const pendingCount = data.stats.pending || 0;
             const failedCount = data.stats.total_gagal || 0;
             initDistributionChart(successCount, pendingCount, failedCount);
 
-            // Update Success Rate Center Text
+            // 4. Update Success Rate Center Text
             const totalInput = data.stats.total_input || 0;
             const rawRate = totalInput > 0 ? Math.round((successCount / totalInput) * 100) : 0;
             const rate = Math.min(100, Math.max(0, rawRate));
             const elRateText = document.getElementById('distribution-rate-text');
             if (elRateText) elRateText.textContent = `${rate}%`;
 
-            // Update Distribution Section & Storage Details
+            // 5. Update Distribution Section & Storage Details
             const elInputSize = document.getElementById('dist-input-size');
             const elOutputSize = document.getElementById('dist-output-size');
             const elInputPages = document.getElementById('dist-input-pages');
@@ -240,8 +281,10 @@ function updateDashboard() {
 
 function pauseRefresh() {
     refreshPaused = true;
-    clearInterval(timerRefresh);
-    timerRefresh = null;
+    if (timerRefresh) {
+        clearInterval(timerRefresh);
+        timerRefresh = null;
+    }
     setRefreshStatus(false);
 }
 
@@ -260,6 +303,18 @@ function resumeRefresh() {
     setRefreshStatus(true);
 }
 
+function toggleRefresh() {
+    if (timerRefresh) {
+        pauseRefresh();
+    } else {
+        resumeRefresh();
+        updateDashboard();
+        if (typeof updateProgress === 'function') {
+            updateProgress();
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initial Chart setup if initial values present
     if (window.initialDistributionData) {
@@ -268,6 +323,12 @@ document.addEventListener('DOMContentLoaded', () => {
             window.initialDistributionData.pending,
             window.initialDistributionData.failed
         );
+    }
+
+    // Attach click handler to status badge for instant toggle
+    const statusEl = getRefreshStatusElement();
+    if (statusEl) {
+        statusEl.addEventListener('click', toggleRefresh);
     }
 
     updateDashboard();
