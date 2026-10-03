@@ -14,3 +14,6 @@ patch_utf8.patch
 .env
 .superpowers/
 .pytest_cache/
+docs/OCR_Project/
+struktur.txt
+*.signal
