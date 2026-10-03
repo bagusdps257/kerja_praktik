@@ -33,8 +33,11 @@ def test_index_html_contains_autorefresh_elements(client, app, test_user):
     assert res.status_code == 200
     html = res.data.decode('utf-8')
 
-    # Must contain refresh-status indicator element
-    assert 'id="refresh-status"' in html, "Element #refresh-status must be present in index.html"
+    # Verify refresh.js script is loaded for background auto-refresh
+    assert 'refresh.js' in html
+    # Verify unnecessary badges are removed per user specification
+    assert 'Auto-refresh Aktif' not in html
+    assert 'Unit Cilamaya' not in html
 
     # Must contain KPI and distribution elements
     assert 'id="stat-total-input"' in html

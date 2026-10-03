@@ -86,7 +86,7 @@
         <div class="mb-3 p-3 rounded-2 border" style="background: #f8fafc;">
             <label class="form-label small text-uppercase text-muted fw-bold mb-1.5 d-flex align-items-center justify-content-between" style="letter-spacing:.04em; font-size:.74rem;">
                 <span><i class="bi bi-diagram-3 me-1.5" style="color: #0f3c68;"></i>Cakupan Pemrosesan (Target Subfolder)</span>
-                <span class="badge border px-2 py-0.5 rounded-1 text-muted fw-normal" style="background:#ffffff; font-size: 0.7rem;">Opsional</span>
+                <span id="target-scope-badge" class="badge border px-2 py-0.5 rounded-1 text-muted fw-normal" style="background:#ffffff; font-size: 0.7rem;">Semua Subfolder</span>
             </label>
             <div class="input-group">
                 <span class="input-group-text bg-white">
@@ -104,8 +104,8 @@
                     <span>Pindai Ulang</span>
                 </button>
             </div>
-            <div class="form-text small text-muted mt-1.5" style="font-size: 0.74rem;">
-                Pilih subfolder tertentu (misalnya: <strong>input 17</strong>) untuk membatasi pemrosesan hanya pada berkas di subfolder tersebut tanpa memeriksa seluruh folder lainnya.
+            <div id="target-scope-desc" class="form-text small text-muted mt-1.5" style="font-size: 0.74rem;">
+                Sistem memindai <strong>seluruh subfolder</strong> di dalam direktori input secara komprehensif.
             </div>
         </div>
 

@@ -77,7 +77,13 @@ def jalankan():
     active_ocr_thread.daemon = True
     active_ocr_thread.start()
 
-    # 6. Redirect kembali ke dasbor
+    # 6. Response: kembalikan JSON untuk request AJAX (agar tidak reload page) atau redirect jika submit form HTML standar
+    if request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({
+            "status": "success",
+            "message": "Proses OCR berhasil dimulai.",
+            "target_subfolder": target_subfolder
+        })
     return redirect(url_for("dashboard.index"))
 
 

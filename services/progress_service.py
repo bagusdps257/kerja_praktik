@@ -12,7 +12,8 @@ DEFAULT_STATE = {
     "selesai": 0,
     "total": 0,
     "current_file": "-",
-    "queue_paused": False
+    "queue_paused": False,
+    "target_subfolder": ""
 }
 
 
@@ -82,7 +83,7 @@ def reset_progress():
 # START
 # =====================================================
 
-def mulai(total_file):
+def mulai(total_file, target_subfolder=""):
     melepaskan_signal_stop()
     state = {
         "status": "RUNNING",
@@ -90,7 +91,8 @@ def mulai(total_file):
         "selesai": 0,
         "total": total_file,
         "current_file": "-",
-        "queue_paused": False
+        "queue_paused": False,
+        "target_subfolder": target_subfolder or ""
     }
     _write_state(state, force=True)
 

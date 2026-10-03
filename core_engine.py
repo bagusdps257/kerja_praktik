@@ -590,7 +590,7 @@ def jalankan_sistem_ocr(input_dir, output_dir, overwrite=False, flask_app=None, 
 
         # LANGKAH 5: Hitung total dokumen & mulai progress tracking
         total_dokumen = hitung_total_dokumen(scan_dir)
-        mulai(total_dokumen)
+        mulai(total_dokumen, target_subfolder=target_subfolder)
 
         catat_log(f"--- Memulai pemrosesan Searchable PDF ({total_dokumen} berkas terdeteksi) ---")
 

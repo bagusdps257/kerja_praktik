@@ -79,3 +79,19 @@ def test_core_engine_target_subfolder_invalid(tmp_path, app):
 
     prog = core_engine.ambil_progress()
     assert prog["status"] == "ERROR"
+
+def test_jalankan_endpoint_with_ajax_target_subfolder(client, test_user):
+    client.post("/login", data={
+        "username": "admin_test",
+        "password": "password123"
+    }, follow_redirects=True)
+
+    res = client.post("/jalankan", data={
+        "target_subfolder": "input 17"
+    }, headers={"X-Requested-With": "XMLHttpRequest"})
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["status"] == "success"
+    assert data["target_subfolder"] == "input 17"
+

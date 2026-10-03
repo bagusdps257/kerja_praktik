@@ -53,6 +53,26 @@ function updateProgress() {
             progressStatus.innerHTML =
                 'Status : <span class="badge ' + badgeClass + ' px-3 py-1.5 rounded-pill fw-bold text-uppercase">' + safeStatus + '</span>';
         }
+
+        // Sinkronisasi status dropdown Target Subfolder saat proses berjalan
+        const selectTarget = document.getElementById("target_subfolder");
+        const btnScan = document.getElementById("btn-scan-subfolders");
+        if (selectTarget) {
+            if (progress.status === "RUNNING") {
+                selectTarget.disabled = true;
+                if (btnScan) btnScan.disabled = true;
+
+                if (progress.target_subfolder && selectTarget.value !== progress.target_subfolder) {
+                    selectTarget.value = progress.target_subfolder;
+                    if (typeof perbaruiStatusCakupan === 'function') {
+                        perbaruiStatusCakupan(progress.target_subfolder, true);
+                    }
+                }
+            } else {
+                selectTarget.disabled = false;
+                if (btnScan) btnScan.disabled = false;
+            }
+        }
     })
     .catch(err => {
         // Warning logged without throwing uncaught errors to prevent halting intervals

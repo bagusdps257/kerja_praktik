@@ -280,12 +280,7 @@ function updateDashboard() {
 }
 
 function pauseRefresh() {
-    refreshPaused = true;
-    if (timerRefresh) {
-        clearInterval(timerRefresh);
-        timerRefresh = null;
-    }
-    setRefreshStatus(false);
+    // Auto-refresh dipertahankan agar selalu aktif sesuai preferensi sistem
 }
 
 function resumeRefresh() {
@@ -298,21 +293,7 @@ function resumeRefresh() {
         if (typeof updateProgress === 'function') {
             updateProgress();
         }
-    }, 2000); // Polling every 2 seconds
-
-    setRefreshStatus(true);
-}
-
-function toggleRefresh() {
-    if (timerRefresh) {
-        pauseRefresh();
-    } else {
-        resumeRefresh();
-        updateDashboard();
-        if (typeof updateProgress === 'function') {
-            updateProgress();
-        }
-    }
+    }, 2000); // Polling aktif setiap 2 detik
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -323,12 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.initialDistributionData.pending,
             window.initialDistributionData.failed
         );
-    }
-
-    // Attach click handler to status badge for instant toggle
-    const statusEl = getRefreshStatusElement();
-    if (statusEl) {
-        statusEl.addEventListener('click', toggleRefresh);
     }
 
     updateDashboard();
